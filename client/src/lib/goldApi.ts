@@ -1,7 +1,13 @@
 // Gold Price API utility functions
-// Using goldprice.org API for real-time gold prices
+// Using goldprice.org API with CORS proxy for real-time gold prices
 
 const GOLD_API_BASE = 'https://data-asg.goldprice.org/dbXRates';
+
+// CORS proxy options
+const CORS_PROXIES = [
+  'https://cors-anywhere.herokuapp.com/',
+  'https://api.allorigins.win/raw?url=',
+];
 
 export interface GoldPrice {
   timestamp: number;
@@ -26,10 +32,12 @@ export interface HistoricalData {
  * @returns Gold price data
  */
 export async function getCurrentGoldPrice(currency: string = 'USD'): Promise<GoldPrice> {
+  const url = `${GOLD_API_BASE}/${currency}`;
+  
   try {
-    const response = await fetch(
-      `${GOLD_API_BASE}/${currency}`,
-      {
+    // Try direct fetch first
+    try {
+      const response = await fetch(url, {
         headers: {
           'accept': '*/*',
           'accept-language': 'en-US,en-GB;q=0.9,en;q=0.8,zh;q=0.7',
@@ -45,15 +53,41 @@ export async function getCurrentGoldPrice(currency: string = 'USD'): Promise<Gol
           'sec-fetch-site': 'same-site',
           'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36'
         },
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
       }
-    );
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const data = await response.json();
+      return parseGoldPriceResponse(data, currency);
+    } catch (directError) {
+      // If direct fetch fails, try with CORS proxy
+      console.warn('Direct fetch failed, trying CORS proxy...');
+      
+      for (const proxy of CORS_PROXIES) {
+        try {
+          const proxyUrl = proxy.includes('allorigins') 
+            ? `${proxy}${encodeURIComponent(url)}`
+            : `${proxy}${url}`;
+          
+          const response = await fetch(proxyUrl);
+          
+          if (!response.ok) {
+            continue; // Try next proxy
+          }
+
+          const data = await response.json();
+          return parseGoldPriceResponse(data, currency);
+        } catch (proxyError) {
+          console.warn(`Proxy ${proxy} failed, trying next...`);
+          continue;
+        }
+      }
+      
+      // If all proxies fail, throw the original error
+      throw directError;
     }
-
-    const data = await response.json();
-    return parseGoldPriceResponse(data, currency);
   } catch (error) {
     console.error('Failed to fetch gold price:', error);
     // Return mock data for demo purposes

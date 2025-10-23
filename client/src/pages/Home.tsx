@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { GoldChart } from '@/components/GoldChart';
 import { PriceStats } from '@/components/PriceStats';
@@ -59,7 +58,7 @@ export default function Home() {
                   </div>
                 </div>
               )}
-              {loading && <div className="text-muted-foreground">Loading price data...</div>}
+              {loading && !currentPrice && <div className="text-muted-foreground">Loading price data...</div>}
             </div>
 
             {/* Currency Selector */}
