@@ -37,16 +37,8 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-primary">Gold & Silver Tracker</h1>
-              <p className="text-muted-foreground text-sm mt-1">Real-time precious metals prices</p>
             </div>
-            <Button
-              onClick={refetch}
-              disabled={loading}
-              variant="outline"
-              className="text-primary border-primary hover:bg-primary/10"
-            >
-              {loading ? 'Updating...' : 'Refresh'}
-            </Button>
+
           </div>
         </div>
       </header>
@@ -192,39 +184,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Info Section */}
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="bg-card rounded-lg p-6 border border-border">
-            <h3 className="text-lg font-semibold mb-4">About Precious Metals</h3>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Gold and silver prices are quoted in the selected currency per troy ounce. The prices shown are real-time spot
-              prices from international markets. The change values show the absolute price movement, while percentage change
-              shows the relative movement. All prices are updated regularly throughout the trading day.
-            </p>
-          </div>
 
-          <div className="bg-card rounded-lg p-6 border border-border">
-            <h3 className="text-lg font-semibold mb-4">How to Use</h3>
-            <ul className="text-muted-foreground text-sm space-y-2">
-              <li className="flex items-start">
-                <span className="text-primary mr-3">•</span>
-                <span>Select your preferred currency to view prices in different currencies</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-primary mr-3">•</span>
-                <span>Toggle between gram and ounce units for convenient price comparison</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-primary mr-3">•</span>
-                <span>View real-time price changes and percentage movements</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-primary mr-3">•</span>
-                <span>Click Refresh to get the latest price updates immediately</span>
-              </li>
-            </ul>
-          </div>
-        </div>
       </main>
     </div>
   );
