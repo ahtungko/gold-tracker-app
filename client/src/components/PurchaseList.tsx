@@ -1,6 +1,6 @@
-import { Purchase } from '@/lib/types';
-import { Button } from '@/components/ui/button';
-import { formatPrice } from '@/lib/goldApi';
+import { Purchase } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/lib/goldApi";
 
 interface PurchaseListProps {
   purchases: Purchase[];
@@ -11,7 +11,11 @@ interface PurchaseListProps {
   };
 }
 
-export default function PurchaseList({ purchases, onDelete, currentPrices }: PurchaseListProps) {
+export default function PurchaseList({
+  purchases,
+  onDelete,
+  currentPrices,
+}: PurchaseListProps) {
   if (purchases.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -22,9 +26,12 @@ export default function PurchaseList({ purchases, onDelete, currentPrices }: Pur
 
   return (
     <div className="space-y-3">
-      {purchases.map((purchase) => {
-        const currentPrice = purchase.itemType === 'gold' ? currentPrices.gold : currentPrices.silver;
-        const estimatedValue = currentPrice * purchase.weight;
+      {purchases.map(purchase => {
+        const currentPrice =
+          purchase.itemType === "gold"
+            ? currentPrices.gold
+            : currentPrices.silver;
+        const estimatedValue = (currentPrice / 31.1034768) * purchase.weight;
         const profit = estimatedValue - purchase.totalCost;
         const profitPercent = (profit / purchase.totalCost) * 100;
 
@@ -43,13 +50,17 @@ export default function PurchaseList({ purchases, onDelete, currentPrices }: Pur
                   <span className="font-semibold">{purchase.itemName}</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">{purchase.weight.toFixed(2)}g</span> @ {formatPrice(purchase.pricePerGram)} {purchase.currency}/g
+                  <span className="font-medium">
+                    {purchase.weight.toFixed(2)}g
+                  </span>{" "}
+                  @ {formatPrice(purchase.pricePerGram)} {purchase.currency}/g
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Purity: <span className="font-medium">{purchase.purity}</span>
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Purchased: {new Date(purchase.purchaseDate).toLocaleDateString()}
+                  Purchased:{" "}
+                  {new Date(purchase.purchaseDate).toLocaleDateString()}
                 </p>
               </div>
 
@@ -73,14 +84,20 @@ export default function PurchaseList({ purchases, onDelete, currentPrices }: Pur
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-xs text-muted-foreground">Est. Profit</p>
-                    <p className={`font-semibold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {profit >= 0 ? '+' : ''}{formatPrice(profit)} {purchase.currency}
+                    <p
+                      className={`font-semibold ${profit >= 0 ? "text-green-400" : "text-red-400"}`}
+                    >
+                      {profit >= 0 ? "+" : ""}
+                      {formatPrice(profit)} {purchase.currency}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">Return</p>
-                    <p className={`font-semibold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {profit >= 0 ? '+' : ''}{profitPercent.toFixed(2)}%
+                    <p
+                      className={`font-semibold ${profit >= 0 ? "text-green-400" : "text-red-400"}`}
+                    >
+                      {profit >= 0 ? "+" : ""}
+                      {profitPercent.toFixed(2)}%
                     </p>
                   </div>
                 </div>
@@ -101,4 +118,3 @@ export default function PurchaseList({ purchases, onDelete, currentPrices }: Pur
     </div>
   );
 }
-
