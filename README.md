@@ -107,31 +107,24 @@ git push -u origin main
    - **Output Directory**: `dist`
    - **Install Command**: `pnpm install`
 
-6. Add environment variables (if using a real API key):
-   - `VITE_GOLD_API_KEY`: Your GoldAPI.io API key
+6. Click "Deploy" - no environment variables needed!
 
-7. Click "Deploy"
+**Note:** The application uses the free GoldPrice.org API which requires no authentication.
 
 ## API Integration
 
-### GoldAPI.io
+### GoldPrice.org
 
-The application uses [GoldAPI.io](https://www.goldapi.io/) for real-time gold price data.
+The application uses the [GoldPrice.org](https://goldprice.org/) API for real-time gold price data.
 
-**Free Tier Benefits:**
-- Up to 100 requests per month
-- Real-time spot prices
-- Multiple currency support
-- No credit card required
+**API Features:**
+- **Endpoint**: `https://data-asg.goldprice.org/dbXRates/{currency_code}`
+- Real-time spot prices in multiple currencies
+- **No authentication required** - completely free to use
+- CORS enabled for browser requests
+- Supported currencies: USD, EUR, GBP, JPY, and many more
 
-**To use with real data:**
-
-1. Sign up at https://www.goldapi.io/
-2. Get your API key from the dashboard
-3. Add it to your environment variables:
-   ```env
-   VITE_GOLD_API_KEY=your_api_key
-   ```
+**No setup required!** The API is completely free and public with no registration needed.
 
 ## Project Structure
 
