@@ -63,7 +63,7 @@ export default function Home() {
 
             {/* Currency Selector */}
             <div className="flex gap-2">
-              {['USD', 'EUR', 'GBP', 'JPY'].map((curr) => (
+              {['MYR', 'USD', 'GBP', 'JPY'].map((curr) => (
                 <Button
                   key={curr}
                   onClick={() => handleCurrencyChange(curr)}
