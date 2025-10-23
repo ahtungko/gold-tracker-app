@@ -29,7 +29,7 @@ export function useGoldPrice(): UseGoldPriceReturn {
   // Use tRPC to fetch gold price from backend
   const { data: currentPrice, isLoading: loading, refetch: refetchPrice } = trpc.gold.getCurrentPrice.useQuery(
     { currency },
-    { refetchInterval: 30000 } // Refetch every 30 seconds
+    { refetchInterval: 60000 } // Refetch every 30 seconds
   );
 
   // Fetch historical data
