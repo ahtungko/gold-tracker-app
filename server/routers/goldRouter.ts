@@ -7,12 +7,19 @@ interface GoldPriceResponse {
   timestamp: number;
   metal: string;
   currency: string;
-  ask: number;
-  bid: number;
+  xauPrice: number;
+  xagPrice: number;
+  chgXau: number;
+  chgXag: number;
+  pcXau: number;
+  pcXag: number;
+  xauClose: number;
+  xagClose: number;
+}
+
+interface HistoricalData {
+  date: string;
   price: number;
-  price_gram_22K?: number;
-  ch: number;
-  chp: number;
 }
 
 /**
@@ -49,8 +56,7 @@ async function fetchGoldPrice(currency: string = 'USD'): Promise<GoldPriceRespon
     return parseGoldPriceResponse(data, currency);
   } catch (error) {
     console.error('Failed to fetch gold price:', error);
-    // Return mock data for demo purposes
-    return getMockGoldPrice(currency);
+    throw error; // Don't return mock data - let the error propagate
   }
 }
 
@@ -61,56 +67,40 @@ async function fetchGoldPrice(currency: string = 'USD'): Promise<GoldPriceRespon
 function parseGoldPriceResponse(data: any, currency: string): GoldPriceResponse {
   try {
     if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
-      console.error('Invalid API response structure');
-      return getMockGoldPrice(currency);
+      throw new Error('Invalid API response structure');
     }
 
     const item = data.items[0];
-    const price = parseFloat(item.xauPrice) || 0;
-    const change = parseFloat(item.chgXau) || 0;
-    const changePercent = parseFloat(item.pcXau) || 0;
-
-    // Calculate ask/bid prices with a small spread
-    const spread = price * 0.0005; // 0.05% spread
-    const ask = price + spread;
-    const bid = price - spread;
-
+    
     return {
       timestamp: Math.floor(data.ts / 1000),
       metal: 'XAU',
       currency: item.curr || currency,
-      ask: ask,
-      bid: bid,
-      price: price,
-      price_gram_22K: price > 0 ? (price / 31.1035) * 0.916 : 0,
-      ch: change,
-      chp: changePercent,
+      xauPrice: parseFloat(item.xauPrice) || 0,
+      xagPrice: parseFloat(item.xagPrice) || 0,
+      chgXau: parseFloat(item.chgXau) || 0,
+      chgXag: parseFloat(item.chgXag) || 0,
+      pcXau: parseFloat(item.pcXau) || 0,
+      pcXag: parseFloat(item.pcXag) || 0,
+      xauClose: parseFloat(item.xauClose) || 0,
+      xagClose: parseFloat(item.xagClose) || 0,
     };
   } catch (error) {
     console.error('Error parsing gold price response:', error);
-    return getMockGoldPrice(currency);
+    throw error; // Don't return mock data - let the error propagate
   }
 }
 
 /**
- * Mock gold price data for testing without API access
+ * Fetch historical gold price data
+ * Note: The goldprice.org API only provides current data
+ * Historical data would require a different API or database
  */
-function getMockGoldPrice(currency: string): GoldPriceResponse {
-  const basePrice = 2000;
-  const variation = Math.random() * 50 - 25;
-  const price = basePrice + variation;
-
-  return {
-    timestamp: Math.floor(Date.now() / 1000),
-    metal: 'XAU',
-    currency: currency,
-    ask: price + 0.5,
-    bid: price - 0.5,
-    price: price,
-    price_gram_22K: price / 31.1035 * 0.916,
-    ch: Math.random() * 10 - 5,
-    chp: (Math.random() * 1 - 0.5),
-  };
+async function fetchHistoricalData(currency: string = 'USD', days: number = 30): Promise<HistoricalData[]> {
+  // The goldprice.org API does not provide historical data
+  // This endpoint will return empty array to indicate no data available
+  console.warn(`Historical data for ${days} days is not available from goldprice.org API`);
+  return [];
 }
 
 export const goldRouter = router({
@@ -121,6 +111,19 @@ export const goldRouter = router({
     .input(z.object({ currency: z.string().default('USD') }))
     .query(async ({ input }) => {
       return await fetchGoldPrice(input.currency);
+    }),
+
+  /**
+   * Get historical gold price data
+   * Note: Returns empty array as goldprice.org API doesn't provide historical data
+   */
+  getHistoricalData: publicProcedure
+    .input(z.object({ 
+      currency: z.string().default('USD'),
+      days: z.number().default(30)
+    }))
+    .query(async ({ input }) => {
+      return await fetchHistoricalData(input.currency, input.days);
     }),
 });
 

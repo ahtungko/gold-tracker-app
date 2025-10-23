@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  generateMockHistoricalData,
   GoldPrice,
   HistoricalData,
 } from '@/lib/goldApi';
@@ -18,6 +17,7 @@ interface UseGoldPriceReturn {
   timeRange: TimeRange;
   setTimeRange: (range: TimeRange) => void;
   refetch: () => void;
+  hasHistoricalData: boolean;
 }
 
 export function useGoldPrice(): UseGoldPriceReturn {
@@ -32,22 +32,24 @@ export function useGoldPrice(): UseGoldPriceReturn {
     { refetchInterval: 30000 } // Refetch every 30 seconds
   );
 
+  // Fetch historical data
+  const { data: historicalDataResponse } = trpc.gold.getHistoricalData.useQuery(
+    { 
+      currency,
+      days: timeRange === '1month' ? 30 : timeRange === '3months' ? 90 : 30
+    },
+    { enabled: false } // Don't auto-fetch since API doesn't provide this
+  );
+
   const refetch = () => {
     refetchPrice();
   };
 
   useEffect(() => {
-    // Generate historical data based on time range
-    let days = 30;
-    if (timeRange === '1month') {
-      days = 30;
-    } else if (timeRange === '3months') {
-      days = 90;
-    }
-
-    const historical = generateMockHistoricalData(days);
-    setHistoricalData(historical);
-  }, [timeRange]);
+    // Update historical data when time range changes
+    // Since goldprice.org API doesn't provide historical data, this will be empty
+    setHistoricalData(historicalDataResponse || []);
+  }, [timeRange, historicalDataResponse]);
 
   return {
     currentPrice: currentPrice || null,
@@ -59,6 +61,7 @@ export function useGoldPrice(): UseGoldPriceReturn {
     timeRange,
     setTimeRange,
     refetch,
+    hasHistoricalData: historicalData.length > 0,
   };
 }
 

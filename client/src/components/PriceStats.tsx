@@ -1,4 +1,4 @@
-import { GoldPrice } from '@/lib/goldApi';
+import { GoldPrice, formatPrice } from '@/lib/goldApi';
 
 interface PriceStatsProps {
   currentPrice: GoldPrice | null;
@@ -9,37 +9,38 @@ export function PriceStats({ currentPrice }: PriceStatsProps) {
     return null;
   }
 
-  const spread = currentPrice.ask - currentPrice.bid;
-  const spreadPercentage = (spread / currentPrice.price) * 100;
+  const perGram = currentPrice.xauPrice / 31.1035;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
       <div className="bg-card/50 rounded-lg p-4 border border-border">
-        <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Spread</p>
-        <p className="text-lg font-semibold text-primary">${spread.toFixed(2)}</p>
-        <p className="text-xs text-muted-foreground mt-1">{spreadPercentage.toFixed(3)}%</p>
+        <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Change (XAU)</p>
+        <p className={`text-lg font-semibold ${currentPrice.chgXau >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          {currentPrice.chgXau >= 0 ? '+' : ''}{formatPrice(currentPrice.chgXau)}
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">{formatPrice(currentPrice.pcXau)}%</p>
       </div>
 
       <div className="bg-card/50 rounded-lg p-4 border border-border">
-        <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Mid Price</p>
-        <p className="text-lg font-semibold text-primary">
-          ${((currentPrice.ask + currentPrice.bid) / 2).toFixed(2)}
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">Average</p>
+        <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Close Price</p>
+        <p className="text-lg font-semibold text-primary">{formatPrice(currentPrice.xauClose)}</p>
+        <p className="text-xs text-muted-foreground mt-1">Previous</p>
       </div>
 
       <div className="bg-card/50 rounded-lg p-4 border border-border">
         <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Per Gram</p>
-        <p className="text-lg font-semibold text-primary">${(currentPrice.price / 31.1035).toFixed(2)}</p>
+        <p className="text-lg font-semibold text-primary">{formatPrice(perGram)}</p>
         <p className="text-xs text-muted-foreground mt-1">1 gram</p>
       </div>
 
       <div className="bg-card/50 rounded-lg p-4 border border-border">
-        <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Updated</p>
-        <p className="text-lg font-semibold text-primary">
-          {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
+        <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Silver (XAG)</p>
+        <p className={`text-lg font-semibold ${currentPrice.chgXag >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          {formatPrice(currentPrice.xagPrice)}
         </p>
-        <p className="text-xs text-muted-foreground mt-1">Just now</p>
+        <p className={`text-xs ${currentPrice.pcXag >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          {currentPrice.pcXag >= 0 ? '+' : ''}{formatPrice(currentPrice.pcXag)}%
+        </p>
       </div>
     </div>
   );
