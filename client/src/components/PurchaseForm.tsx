@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Purchase, ItemType, Purity } from '@/lib/types';
+import { Purchase, Purity } from '@/lib/types';
 import { CURRENCIES } from '@/lib/currencies';
 
 interface PurchaseFormProps {
@@ -8,25 +8,29 @@ interface PurchaseFormProps {
   isLoading?: boolean;
 }
 
-const ITEM_TYPES: { value: ItemType; label: string }[] = [
-  { value: 'gold', label: 'Gold' },
-  { value: 'silver', label: 'Silver' },
+const GOLD_TYPES = [
+  { value: 'gold_bar', label: 'Gold Bar' },
+  { value: 'gold_coin', label: 'Gold Coin' },
+  { value: 'jewelry', label: 'Jewelry' },
+  { value: 'charm', label: 'Charm' },
+  { value: 'gold_bean', label: 'Gold Bean' },
+  { value: 'paper_gold', label: 'Paper Gold' },
+  { value: 'other', label: 'Others' },
 ];
 
 const PURITIES: { value: Purity; label: string }[] = [
-  { value: '999', label: '999 (Pure)' },
-  { value: '995', label: '995' },
-  { value: '990', label: '990' },
-  { value: '916', label: '916 (22K)' },
-  { value: '750', label: '750 (18K)' },
-  { value: '585', label: '585 (14K)' },
-  { value: '375', label: '375 (9K)' },
-  { value: 'other', label: 'Other' },
+  { value: '999', label: '999.9' },
+  { value: '995', label: '999' },
+  { value: '916', label: '916' },
+  { value: '750', label: 'TNG Gold' },
+  { value: '585', label: 'Public Gold' },
+  { value: '375', label: 'Maybank Gold' },
+  { value: 'other', label: 'Others' },
 ];
 
 export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFormProps) {
   const [formData, setFormData] = useState({
-    itemType: 'gold' as ItemType,
+    itemType: 'gold_bar',
     itemName: '',
     currency: 'MYR',
     pricePerGram: '',
@@ -36,6 +40,9 @@ export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFo
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Get today's date for max date validation
+  const today = new Date().toISOString().split('T')[0];
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -58,6 +65,10 @@ export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFo
       newErrors.purchaseDate = 'Purchase date is required';
     }
 
+    if (formData.purchaseDate > today) {
+      newErrors.purchaseDate = 'Purchase date cannot be in the future';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -70,7 +81,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFo
     }
 
     const purchase: Omit<Purchase, 'id' | 'createdAt'> = {
-      itemType: formData.itemType,
+      itemType: 'gold',
       itemName: formData.itemName.trim(),
       currency: formData.currency,
       pricePerGram: parseFloat(formData.pricePerGram),
@@ -84,7 +95,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFo
 
     // Reset form
     setFormData({
-      itemType: 'gold',
+      itemType: 'gold_bar',
       itemName: '',
       currency: 'MYR',
       pricePerGram: '',
@@ -100,15 +111,15 @@ export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFo
       <h3 className="text-lg font-semibold">Add Purchase</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Item Type */}
+        {/* Gold Type */}
         <div>
-          <label className="block text-sm font-medium mb-1">Item Type *</label>
+          <label className="block text-sm font-medium mb-1">Gold Type *</label>
           <select
             value={formData.itemType}
-            onChange={(e) => setFormData({ ...formData, itemType: e.target.value as ItemType })}
+            onChange={(e) => setFormData({ ...formData, itemType: e.target.value })}
             className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            {ITEM_TYPES.map((type) => (
+            {GOLD_TYPES.map((type) => (
               <option key={type.value} value={type.value}>
                 {type.label}
               </option>
@@ -123,7 +134,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFo
             type="text"
             value={formData.itemName}
             onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
-            placeholder="e.g., Gold Bar, Silver Coin"
+            placeholder="e.g., 1oz Bar, Gold Pendant"
             className={`w-full px-3 py-2 rounded-md border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
               errors.itemName ? 'border-red-500' : 'border-border'
             }`}
@@ -152,10 +163,10 @@ export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFo
           <label className="block text-sm font-medium mb-1">Price Per Gram *</label>
           <input
             type="number"
-            step="0.01"
+            step="0.00000001"
             value={formData.pricePerGram}
             onChange={(e) => setFormData({ ...formData, pricePerGram: e.target.value })}
-            placeholder="0.00"
+            placeholder="0.00000000"
             className={`w-full px-3 py-2 rounded-md border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
               errors.pricePerGram ? 'border-red-500' : 'border-border'
             }`}
@@ -202,6 +213,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFo
             type="date"
             value={formData.purchaseDate}
             onChange={(e) => setFormData({ ...formData, purchaseDate: e.target.value })}
+            max={today}
             className={`w-full px-3 py-2 rounded-md border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
               errors.purchaseDate ? 'border-red-500' : 'border-border'
             }`}
