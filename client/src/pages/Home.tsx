@@ -26,7 +26,7 @@ export default function Home() {
   };
 
   const getDisplayUnit = () => {
-    return unit === 'gram' ? 'per gram' : 'per oz';
+    return unit === 'gram' ? 'g' : 'oz';
   };
 
   return (
@@ -109,114 +109,86 @@ export default function Home() {
         <div className="grid md:grid-cols-2 gap-8 mb-8">
           {/* Gold Card */}
           <div className="bg-card rounded-lg p-8 border border-border">
-            <div className="mb-6">
-              <p className="text-muted-foreground text-sm mb-2">Gold Price (XAU)</p>
-              {currentPrice && (
-                <div>
-                  <h2 className="text-4xl font-bold text-primary mb-2">
-                    {formatPrice(getDisplayPrice(currentPrice.xauPrice))}
-                  </h2>
-                  <p className="text-muted-foreground text-sm mb-4">{getDisplayUnit()}</p>
-                </div>
-              )}
-              {loading && !currentPrice && <div className="text-muted-foreground">Loading price data...</div>}
-            </div>
-
-            {/* Gold Change */}
             {currentPrice && (
-              <div className="border-t border-border pt-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Change</p>
-                    <p className={`text-2xl font-bold ${currentPrice.chgXau >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <div>
+                <p className="text-muted-foreground text-sm mb-4">Gold Price (XAU) / {currency}</p>
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-3">
+                    <h2 className="text-4xl font-bold text-primary">
+                      {formatPrice(getDisplayPrice(currentPrice.xauPrice))}
+                    </h2>
+                    <p className={`text-lg font-semibold ${currentPrice.chgXau >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {currentPrice.chgXau >= 0 ? '+' : ''}{formatPrice(getDisplayPrice(currentPrice.chgXau))}
                     </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">% Change</p>
-                    <p className={`text-2xl font-bold ${currentPrice.pcXau >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    <p className={`text-lg font-semibold ${currentPrice.pcXau >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {currentPrice.pcXau >= 0 ? '+' : ''}{formatPercentage(currentPrice.pcXau)}
                     </p>
                   </div>
+                  <p className="text-muted-foreground text-sm mt-2">per {getDisplayUnit()}</p>
                 </div>
-              </div>
-            )}
 
-            {/* Additional Gold Info */}
-            {currentPrice && (
-              <div className="border-t border-border mt-6 pt-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Close Price</p>
-                    <p className="text-lg font-semibold text-primary">
-                      {formatPrice(getDisplayPrice(currentPrice.xauClose))}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Timestamp</p>
-                    <p className="text-lg font-semibold text-primary">
-                      {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
-                    </p>
+                {/* Additional Gold Info */}
+                <div className="border-t border-border pt-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Close Price</p>
+                      <p className="text-lg font-semibold text-primary">
+                        {formatPrice(getDisplayPrice(currentPrice.xauClose))}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Updated</p>
+                      <p className="text-lg font-semibold text-primary">
+                        {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
+            {loading && !currentPrice && <div className="text-muted-foreground">Loading price data...</div>}
           </div>
 
           {/* Silver Card */}
           <div className="bg-card rounded-lg p-8 border border-border">
-            <div className="mb-6">
-              <p className="text-muted-foreground text-sm mb-2">Silver Price (XAG)</p>
-              {currentPrice && (
-                <div>
-                  <h2 className="text-4xl font-bold text-blue-300 mb-2">
-                    {formatPrice(getDisplayPrice(currentPrice.xagPrice))}
-                  </h2>
-                  <p className="text-muted-foreground text-sm mb-4">{getDisplayUnit()}</p>
-                </div>
-              )}
-              {loading && !currentPrice && <div className="text-muted-foreground">Loading price data...</div>}
-            </div>
-
-            {/* Silver Change */}
             {currentPrice && (
-              <div className="border-t border-border pt-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Change</p>
-                    <p className={`text-2xl font-bold ${currentPrice.chgXag >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <div>
+                <p className="text-muted-foreground text-sm mb-4">Silver Price (XAG) / {currency}</p>
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-3">
+                    <h2 className="text-4xl font-bold text-blue-300">
+                      {formatPrice(getDisplayPrice(currentPrice.xagPrice))}
+                    </h2>
+                    <p className={`text-lg font-semibold ${currentPrice.chgXag >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {currentPrice.chgXag >= 0 ? '+' : ''}{formatPrice(getDisplayPrice(currentPrice.chgXag))}
                     </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">% Change</p>
-                    <p className={`text-2xl font-bold ${currentPrice.pcXag >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    <p className={`text-lg font-semibold ${currentPrice.pcXag >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {currentPrice.pcXag >= 0 ? '+' : ''}{formatPercentage(currentPrice.pcXag)}
                     </p>
                   </div>
+                  <p className="text-muted-foreground text-sm mt-2">per {getDisplayUnit()}</p>
                 </div>
-              </div>
-            )}
 
-            {/* Additional Silver Info */}
-            {currentPrice && (
-              <div className="border-t border-border mt-6 pt-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Close Price</p>
-                    <p className="text-lg font-semibold text-blue-300">
-                      {formatPrice(getDisplayPrice(currentPrice.xagClose))}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Timestamp</p>
-                    <p className="text-lg font-semibold text-blue-300">
-                      {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
-                    </p>
+                {/* Additional Silver Info */}
+                <div className="border-t border-border pt-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Close Price</p>
+                      <p className="text-lg font-semibold text-blue-300">
+                        {formatPrice(getDisplayPrice(currentPrice.xagClose))}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Updated</p>
+                      <p className="text-lg font-semibold text-blue-300">
+                        {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
+            {loading && !currentPrice && <div className="text-muted-foreground">Loading price data...</div>}
           </div>
         </div>
 
