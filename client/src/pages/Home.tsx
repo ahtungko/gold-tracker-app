@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useGoldPrice, TimeRange } from '@/hooks/useGoldPrice';
 import { formatPrice, formatPercentage } from '@/lib/goldApi';
+import { CURRENCIES } from '@/lib/currencies';
 
 type Unit = 'oz' | 'gram';
 
@@ -48,23 +49,22 @@ export default function Home() {
         {/* Controls Section */}
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           {/* Currency Selector */}
-          <div className="flex gap-2">
-            <span className="text-sm text-muted-foreground self-center">Currency:</span>
-            {['MYR', 'USD', 'EUR', 'GBP', 'JPY'].map((curr) => (
-              <Button
-                key={curr}
-                onClick={() => handleCurrencyChange(curr)}
-                variant={currency === curr ? 'default' : 'outline'}
-                size="sm"
-                className={
-                  currency === curr
-                    ? 'bg-primary text-primary-foreground'
-                    : 'border-border text-foreground hover:bg-primary/10'
-                }
-              >
-                {curr}
-              </Button>
-            ))}
+          <div className="flex gap-2 items-center">
+            <label htmlFor="currency-select" className="text-sm text-muted-foreground">
+              Currency:
+            </label>
+            <select
+              id="currency-select"
+              value={currency}
+              onChange={(e) => handleCurrencyChange(e.target.value)}
+              className="px-3 py-2 rounded-md border border-border bg-background text-foreground hover:bg-background/80 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {CURRENCIES.map((curr) => (
+                <option key={curr.code} value={curr.code}>
+                  {curr.code} - {curr.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Unit Selector */}
