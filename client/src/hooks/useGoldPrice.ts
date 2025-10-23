@@ -23,7 +23,7 @@ interface UseGoldPriceReturn {
 export function useGoldPrice(): UseGoldPriceReturn {
   const [historicalData, setHistoricalData] = useState<HistoricalData[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState('MYR'); // Default to MYR
   const [timeRange, setTimeRange] = useState<TimeRange>('realtime');
 
   // Use tRPC to fetch gold price from backend

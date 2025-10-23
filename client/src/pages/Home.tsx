@@ -1,33 +1,43 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { GoldChart } from '@/components/GoldChart';
-import { PriceStats } from '@/components/PriceStats';
 import { useGoldPrice, TimeRange } from '@/hooks/useGoldPrice';
 import { formatPrice, formatPercentage } from '@/lib/goldApi';
 
-export default function Home() {
-  const { currentPrice, historicalData, loading, currency, setCurrency, timeRange, setTimeRange, refetch, hasHistoricalData } =
-    useGoldPrice();
+type Unit = 'oz' | 'gram';
 
-  const handleTimeRangeChange = (range: TimeRange) => {
-    setTimeRange(range);
-  };
+export default function Home() {
+  const { currentPrice, loading, currency, setCurrency, timeRange, setTimeRange, refetch, hasHistoricalData } =
+    useGoldPrice();
+  const [unit, setUnit] = useState<Unit>('gram');
 
   const handleCurrencyChange = (newCurrency: string) => {
     setCurrency(newCurrency);
   };
 
-  const priceChangeColor = currentPrice && currentPrice.pcXau >= 0 ? 'text-green-400' : 'text-red-400';
-  const priceChangeSign = currentPrice && currentPrice.pcXau >= 0 ? '+' : '';
+  const handleUnitChange = (newUnit: Unit) => {
+    setUnit(newUnit);
+  };
+
+  // Convert oz to gram (1 oz = 31.1035 grams)
+  const OZ_TO_GRAM = 31.1035;
+
+  const getDisplayPrice = (price: number) => {
+    return unit === 'gram' ? price / OZ_TO_GRAM : price;
+  };
+
+  const getDisplayUnit = () => {
+    return unit === 'gram' ? 'per gram' : 'per oz';
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="border-b border-border">
-        <div className="container py-6">
+      <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur">
+        <div className="container py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-primary">Gold Tracker</h1>
-              <p className="text-muted-foreground mt-1">Real-time gold price monitor</p>
+              <h1 className="text-2xl font-bold text-primary">Gold & Silver Tracker</h1>
+              <p className="text-muted-foreground text-sm mt-1">Real-time precious metals prices</p>
             </div>
             <Button
               onClick={refetch}
@@ -43,123 +53,181 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="container py-8">
-        {/* Price Display Section */}
-        <div className="bg-card rounded-lg p-8 mb-8 border border-border">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <p className="text-muted-foreground text-sm mb-2">International Gold Price (XAU)</p>
+        {/* Controls Section */}
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          {/* Currency Selector */}
+          <div className="flex gap-2">
+            <span className="text-sm text-muted-foreground self-center">Currency:</span>
+            {['MYR', 'USD', 'EUR', 'GBP', 'JPY'].map((curr) => (
+              <Button
+                key={curr}
+                onClick={() => handleCurrencyChange(curr)}
+                variant={currency === curr ? 'default' : 'outline'}
+                size="sm"
+                className={
+                  currency === curr
+                    ? 'bg-primary text-primary-foreground'
+                    : 'border-border text-foreground hover:bg-primary/10'
+                }
+              >
+                {curr}
+              </Button>
+            ))}
+          </div>
+
+          {/* Unit Selector */}
+          <div className="flex gap-2">
+            <span className="text-sm text-muted-foreground self-center">Unit:</span>
+            <Button
+              onClick={() => handleUnitChange('gram')}
+              variant={unit === 'gram' ? 'default' : 'outline'}
+              size="sm"
+              className={
+                unit === 'gram'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border-border text-foreground hover:bg-primary/10'
+              }
+            >
+              Gram
+            </Button>
+            <Button
+              onClick={() => handleUnitChange('oz')}
+              variant={unit === 'oz' ? 'default' : 'outline'}
+              size="sm"
+              className={
+                unit === 'oz'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border-border text-foreground hover:bg-primary/10'
+              }
+            >
+              Ounce
+            </Button>
+          </div>
+        </div>
+
+        {/* Price Cards Grid */}
+        <div className="grid md:grid-cols-2 gap-8 mb-8">
+          {/* Gold Card */}
+          <div className="bg-card rounded-lg p-8 border border-border">
+            <div className="mb-6">
+              <p className="text-muted-foreground text-sm mb-2">Gold Price (XAU)</p>
               {currentPrice && (
                 <div>
-                  <h2 className="text-5xl font-bold text-primary mb-2">
-                    {formatPrice(currentPrice.xauPrice)}
+                  <h2 className="text-4xl font-bold text-primary mb-2">
+                    {formatPrice(getDisplayPrice(currentPrice.xauPrice))}
                   </h2>
-                  <div className={`text-lg font-semibold ${priceChangeColor}`}>
-                    {priceChangeSign}{formatPrice(currentPrice.chgXau)} {formatPercentage(currentPrice.pcXau)}
-                  </div>
+                  <p className="text-muted-foreground text-sm mb-4">{getDisplayUnit()}</p>
                 </div>
               )}
               {loading && !currentPrice && <div className="text-muted-foreground">Loading price data...</div>}
             </div>
 
-            {/* Currency Selector */}
-            <div className="flex gap-2">
-              {['MYR', 'USD', 'EUR', 'GBP', 'JPY'].map((curr) => (
-                <Button
-                  key={curr}
-                  onClick={() => handleCurrencyChange(curr)}
-                  variant={currency === curr ? 'default' : 'outline'}
-                  className={
-                    currency === curr
-                      ? 'bg-primary text-primary-foreground'
-                      : 'border-border text-foreground hover:bg-primary/10'
-                  }
-                >
-                  {curr}
-                </Button>
-              ))}
-            </div>
+            {/* Gold Change */}
+            {currentPrice && (
+              <div className="border-t border-border pt-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Change</p>
+                    <p className={`text-2xl font-bold ${currentPrice.chgXau >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {currentPrice.chgXau >= 0 ? '+' : ''}{formatPrice(getDisplayPrice(currentPrice.chgXau))}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">% Change</p>
+                    <p className={`text-2xl font-bold ${currentPrice.pcXau >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {currentPrice.pcXau >= 0 ? '+' : ''}{formatPercentage(currentPrice.pcXau)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Additional Gold Info */}
+            {currentPrice && (
+              <div className="border-t border-border mt-6 pt-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Close Price</p>
+                    <p className="text-lg font-semibold text-primary">
+                      {formatPrice(getDisplayPrice(currentPrice.xauClose))}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Timestamp</p>
+                    <p className="text-lg font-semibold text-primary">
+                      {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Additional Price Info */}
-          {currentPrice && (
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-border">
-              <div>
-                <p className="text-muted-foreground text-sm">Close Price</p>
-                <p className="text-lg font-semibold text-primary">{formatPrice(currentPrice.xauClose)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-sm">Silver Price (XAG)</p>
-                <p className="text-lg font-semibold text-primary">{formatPrice(currentPrice.xagPrice)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-sm">Silver Change</p>
-                <p className={`text-lg font-semibold ${currentPrice.pcXag >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {currentPrice.pcXag >= 0 ? '+' : ''}{formatPrice(currentPrice.chgXag)} {formatPercentage(currentPrice.pcXag)}
-                </p>
-              </div>
+          {/* Silver Card */}
+          <div className="bg-card rounded-lg p-8 border border-border">
+            <div className="mb-6">
+              <p className="text-muted-foreground text-sm mb-2">Silver Price (XAG)</p>
+              {currentPrice && (
+                <div>
+                  <h2 className="text-4xl font-bold text-blue-300 mb-2">
+                    {formatPrice(getDisplayPrice(currentPrice.xagPrice))}
+                  </h2>
+                  <p className="text-muted-foreground text-sm mb-4">{getDisplayUnit()}</p>
+                </div>
+              )}
+              {loading && !currentPrice && <div className="text-muted-foreground">Loading price data...</div>}
             </div>
-          )}
+
+            {/* Silver Change */}
+            {currentPrice && (
+              <div className="border-t border-border pt-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Change</p>
+                    <p className={`text-2xl font-bold ${currentPrice.chgXag >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {currentPrice.chgXag >= 0 ? '+' : ''}{formatPrice(getDisplayPrice(currentPrice.chgXag))}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">% Change</p>
+                    <p className={`text-2xl font-bold ${currentPrice.pcXag >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {currentPrice.pcXag >= 0 ? '+' : ''}{formatPercentage(currentPrice.pcXag)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Additional Silver Info */}
+            {currentPrice && (
+              <div className="border-t border-border mt-6 pt-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Close Price</p>
+                    <p className="text-lg font-semibold text-blue-300">
+                      {formatPrice(getDisplayPrice(currentPrice.xagClose))}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Timestamp</p>
+                    <p className="text-lg font-semibold text-blue-300">
+                      {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Stats Section */}
-        {currentPrice && <PriceStats currentPrice={currentPrice} />}
-
-        {/* Chart Section - Only show if historical data is available */}
-        {hasHistoricalData && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold">Price Trend</h3>
-
-              {/* Time Range Buttons */}
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleTimeRangeChange('realtime')}
-                  variant={timeRange === 'realtime' ? 'default' : 'outline'}
-                  className={
-                    timeRange === 'realtime'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'border-border text-foreground hover:bg-primary/10'
-                  }
-                >
-                  Real-time
-                </Button>
-                <Button
-                  onClick={() => handleTimeRangeChange('1month')}
-                  variant={timeRange === '1month' ? 'default' : 'outline'}
-                  className={
-                    timeRange === '1month'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'border-border text-foreground hover:bg-primary/10'
-                  }
-                >
-                  1 Month
-                </Button>
-                <Button
-                  onClick={() => handleTimeRangeChange('3months')}
-                  variant={timeRange === '3months' ? 'default' : 'outline'}
-                  className={
-                    timeRange === '3months'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'border-border text-foreground hover:bg-primary/10'
-                  }
-                >
-                  3 Months
-                </Button>
-              </div>
-            </div>
-
-            <GoldChart data={historicalData} loading={loading} />
-          </div>
-        )}
 
         {/* Info Section */}
         <div className="grid md:grid-cols-2 gap-8">
           <div className="bg-card rounded-lg p-6 border border-border">
-            <h3 className="text-lg font-semibold mb-4">About Gold Prices</h3>
+            <h3 className="text-lg font-semibold mb-4">About Precious Metals</h3>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Gold prices are quoted per troy ounce in the selected currency. The prices shown are real-time spot prices from
-              international markets. Close price represents the previous trading session's closing price. The data is updated
-              regularly to provide accurate market information for gold and silver trading.
+              Gold and silver prices are quoted in the selected currency per troy ounce. The prices shown are real-time spot
+              prices from international markets. The change values show the absolute price movement, while percentage change
+              shows the relative movement. All prices are updated regularly throughout the trading day.
             </p>
           </div>
 
@@ -168,19 +236,19 @@ export default function Home() {
             <ul className="text-muted-foreground text-sm space-y-2">
               <li className="flex items-start">
                 <span className="text-primary mr-3">•</span>
-                <span>Select your preferred currency using the buttons above the price</span>
+                <span>Select your preferred currency to view prices in different currencies</span>
               </li>
               <li className="flex items-start">
                 <span className="text-primary mr-3">•</span>
-                <span>View real-time gold and silver prices with percentage changes</span>
+                <span>Toggle between gram and ounce units for convenient price comparison</span>
               </li>
               <li className="flex items-start">
                 <span className="text-primary mr-3">•</span>
-                <span>Compare current prices with previous closing prices</span>
+                <span>View real-time price changes and percentage movements</span>
               </li>
               <li className="flex items-start">
                 <span className="text-primary mr-3">•</span>
-                <span>Click the Refresh button to get the latest price updates</span>
+                <span>Click Refresh to get the latest price updates immediately</span>
               </li>
             </ul>
           </div>
