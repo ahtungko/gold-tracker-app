@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Tracker from "./pages/Tracker";
 import { BottomNavigation } from "./components/BottomNavigation";
+import { useIsMobile } from "./hooks/useMobile";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -27,6 +28,7 @@ function Router() {
 // - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
 function App() {
+  const isMobile = useIsMobile();
   return (
     <ErrorBoundary>
       <ThemeProvider
@@ -36,7 +38,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
-          <BottomNavigation />
+          {isMobile && <BottomNavigation />}
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

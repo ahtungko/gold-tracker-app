@@ -45,7 +45,7 @@ export default function Home() {
             <div>
               <h1 className="text-2xl font-bold text-primary">{t('goldSilverTracker')}</h1>
             </div>
-            <nav className="flex gap-4">
+            <nav className="hidden md:flex gap-4">
               <a href="/" className="text-sm font-medium hover:text-primary transition-colors">{t('prices')}</a>
               <a href="/tracker" className="text-sm font-medium hover:text-primary transition-colors">{t('tracker')}</a>
               <select

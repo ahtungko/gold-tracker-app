@@ -100,7 +100,16 @@ export default function Tracker() {
       {/* Header */}
       <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur">
         <div className="container py-4">
-          <div className="flex items-center space-x-4">            <a href="/" className="text-primary hover:text-primary/80 transition-colors">              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>            </a>            <h1 className="text-2xl font-bold text-primary">{t('purchaseTracker')}</h1>          </div>
+          <div className="flex items-center space-x-4">
+            <a href="/" className="text-primary hover:text-primary/80 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            </a>
+            <h1 className="text-2xl font-bold text-primary">{t('purchaseTracker')}</h1>
+            <nav className="hidden md:flex gap-4">
+              <a href="/" className="text-sm font-medium hover:text-primary transition-colors">{t('prices')}</a>
+              <a href="/tracker" className="text-sm font-medium hover:text-primary transition-colors">{t('tracker')}</a>
+            </nav>
+          </div>
           <p className="text-sm text-muted-foreground mt-1">{t('trackYourPurchases')}</p>
         </div>
       </header>
