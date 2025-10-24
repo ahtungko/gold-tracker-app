@@ -6,6 +6,7 @@ import { exportToCSV, generateExportFilename } from "@/lib/storage";
 interface PurchaseSummaryProps {
   purchases: Purchase[];
   summary: PurchaseSummary;
+  currency: string | null;
   currentPrices: {
     gold: number;
     silver: number;
@@ -15,6 +16,7 @@ interface PurchaseSummaryProps {
 export default function PurchaseSummaryComponent({
   purchases,
   summary,
+  currency,
   currentPrices,
 }: PurchaseSummaryProps) {
   const handleExport = (itemType: "gold" | "silver" | "all") => {
@@ -65,13 +67,13 @@ export default function PurchaseSummaryComponent({
             <div>
               <p className="text-muted-foreground text-xs">Cost</p>
               <p className="font-semibold">
-                {formatPrice(goldSummary.totalCost)}
+                {formatPrice(goldSummary.totalCost, currency || undefined)}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground text-xs">Est. Value</p>
               <p className="font-semibold text-blue-400">
-                {formatPrice(goldSummary.estimatedValue)}
+                {formatPrice(goldSummary.estimatedValue, currency || undefined)}
               </p>
             </div>
             <div>
@@ -80,7 +82,7 @@ export default function PurchaseSummaryComponent({
                 className={`font-semibold ${goldSummary.estimatedProfit >= 0 ? "text-green-400" : "text-red-400"}`}
               >
                 {goldSummary.estimatedProfit >= 0 ? "+" : ""}
-                {formatPrice(goldSummary.estimatedProfit)}
+                {formatPrice(goldSummary.estimatedProfit, currency || undefined)}
               </p>
             </div>
           </div>
@@ -112,13 +114,13 @@ export default function PurchaseSummaryComponent({
             <div>
               <p className="text-muted-foreground text-xs">Cost</p>
               <p className="font-semibold">
-                {formatPrice(silverSummary.totalCost)}
+                {formatPrice(silverSummary.totalCost, currency || undefined)}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground text-xs">Est. Value</p>
               <p className="font-semibold text-blue-400">
-                {formatPrice(silverSummary.estimatedValue)}
+                {formatPrice(silverSummary.estimatedValue, currency || undefined)}
               </p>
             </div>
             <div>
@@ -127,7 +129,7 @@ export default function PurchaseSummaryComponent({
                 className={`font-semibold ${silverSummary.estimatedProfit >= 0 ? "text-green-400" : "text-red-400"}`}
               >
                 {silverSummary.estimatedProfit >= 0 ? "+" : ""}
-                {formatPrice(silverSummary.estimatedProfit)}
+                {formatPrice(silverSummary.estimatedProfit, currency || undefined)}
               </p>
             </div>
           </div>

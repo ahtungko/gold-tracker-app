@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 
 export default function Tracker() {
   const { currentPrice } = useGoldPrice();
-  const { purchases, addPurchase, removePurchase, calculateSummary } = usePurchases();
+  const { purchases, addPurchase, removePurchase, calculateSummary, currency } = usePurchases();
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [isFormVisible, setIsFormVisible] = useState(false);
   const isMobile = useIsMobile();
@@ -78,10 +78,10 @@ export default function Tracker() {
                 >
                   {isFormVisible ? 'Hide Form' : 'Add Purchase'}
                 </Button>
-                {isFormVisible && <PurchaseForm onSubmit={handleAddPurchase} />}
+                {isFormVisible && <PurchaseForm onSubmit={handleAddPurchase} currency={currency} />}
               </div>
             ) : (
-              <PurchaseForm onSubmit={handleAddPurchase} />
+              <PurchaseForm onSubmit={handleAddPurchase} currency={currency} />
             )}
           </div>
 
@@ -92,6 +92,7 @@ export default function Tracker() {
               <PurchaseSummary
                 purchases={purchases}
                 summary={summary}
+                currency={currency}
                 currentPrices={{
                   gold: goldPrice,
                   silver: silverPrice,
@@ -105,6 +106,7 @@ export default function Tracker() {
               <PurchaseList
                 purchases={purchases}
                 onDelete={handleDeletePurchase}
+                currency={currency}
                 currentPrices={{
                   gold: goldPrice,
                   silver: silverPrice,

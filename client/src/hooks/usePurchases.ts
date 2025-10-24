@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
 import { Purchase, PurchaseSummary } from '@/lib/types';
-import { getPurchases, savePurchase, deletePurchase } from '@/lib/storage';
+import { getPurchases, savePurchase, deletePurchase, getCurrency, saveCurrency } from '@/lib/storage';
 
 export function usePurchases() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currency, setCurrency] = useState<string | null>(null);
 
-  // Load purchases from local storage on mount
+  // Load purchases and currency from local storage on mount
   useEffect(() => {
     try {
-      const stored = getPurchases();
-      setPurchases(stored);
+      const storedPurchases = getPurchases();
+      setPurchases(storedPurchases);
+
+      const storedCurrency = getCurrency();
+      if (storedCurrency) {
+        setCurrency(storedCurrency);
+      }
     } catch (error) {
-      console.error('Failed to load purchases:', error);
+      console.error('Failed to load data from storage:', error);
     } finally {
       setLoading(false);
     }
@@ -29,6 +35,13 @@ export function usePurchases() {
 
       savePurchase(newPurchase);
       setPurchases((prev) => [...prev, newPurchase]);
+
+      // Save currency if it's the first purchase
+      if (!currency) {
+        saveCurrency(newPurchase.currency);
+        setCurrency(newPurchase.currency);
+      }
+
       return newPurchase;
     } catch (error) {
       console.error('Failed to add purchase:', error);
@@ -72,6 +85,7 @@ export function usePurchases() {
   return {
     purchases,
     loading,
+    currency,
     addPurchase,
     removePurchase,
     calculateSummary,

@@ -5,6 +5,7 @@ import { formatPrice } from "@/lib/goldApi";
 interface PurchaseListProps {
   purchases: Purchase[];
   onDelete: (id: string) => void;
+  currency: string | null;
   currentPrices: {
     gold: number;
     silver: number;
@@ -14,6 +15,7 @@ interface PurchaseListProps {
 export default function PurchaseList({
   purchases,
   onDelete,
+  currency,
   currentPrices,
 }: PurchaseListProps) {
   if (purchases.length === 0) {
@@ -53,7 +55,7 @@ export default function PurchaseList({
                   <span className="font-medium">
                     {purchase.weight.toFixed(2)}g
                   </span>{" "}
-                  @ {formatPrice(purchase.pricePerGram)} {purchase.currency}/g
+                  @ {formatPrice(purchase.pricePerGram, currency || undefined)}/g
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Purity: <span className="font-medium">{purchase.purity}</span>
@@ -70,13 +72,13 @@ export default function PurchaseList({
                   <div>
                     <p className="text-xs text-muted-foreground">Total Cost</p>
                     <p className="font-semibold text-lg">
-                      {formatPrice(purchase.totalCost)} {purchase.currency}
+                      {formatPrice(purchase.totalCost, currency || undefined)}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">Est. Value</p>
                     <p className="font-semibold text-lg text-blue-400">
-                      {formatPrice(estimatedValue)} {purchase.currency}
+                      {formatPrice(estimatedValue, currency || undefined)}
                     </p>
                   </div>
                 </div>
@@ -88,7 +90,7 @@ export default function PurchaseList({
                       className={`font-semibold ${profit >= 0 ? "text-green-400" : "text-red-400"}`}
                     >
                       {profit >= 0 ? "+" : ""}
-                      {formatPrice(profit)} {purchase.currency}
+                      {formatPrice(profit, currency || undefined)}
                     </p>
                   </div>
                   <div className="text-right">

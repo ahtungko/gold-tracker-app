@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Purchase, Purity } from '@/lib/types';
 import { CURRENCIES } from '@/lib/currencies';
@@ -6,6 +6,7 @@ import { CURRENCIES } from '@/lib/currencies';
 interface PurchaseFormProps {
   onSubmit: (purchase: Omit<Purchase, 'id' | 'createdAt'>) => void;
   isLoading?: boolean;
+  currency?: string | null;
 }
 
 const GOLD_TYPES = [
@@ -28,11 +29,11 @@ const PURITIES: { value: Purity; label: string }[] = [
   { value: 'other', label: 'Others' },
 ];
 
-export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFormProps) {
+export default function PurchaseForm({ onSubmit, isLoading = false, currency }: PurchaseFormProps) {
   const [formData, setFormData] = useState({
     itemType: 'gold_bar',
     itemName: '',
-    currency: 'MYR',
+    currency: currency || 'MYR',
     pricePerGram: '',
     weight: '',
     purity: '999' as Purity,
@@ -40,6 +41,12 @@ export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFo
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (currency) {
+      setFormData((prev) => ({ ...prev, currency }));
+    }
+  }, [currency]);
 
   // Get today's date for max date validation
   const today = new Date().toISOString().split('T')[0];
@@ -97,7 +104,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFo
     setFormData({
       itemType: 'gold_bar',
       itemName: '',
-      currency: 'MYR',
+      currency: currency || 'MYR',
       pricePerGram: '',
       weight: '',
       purity: '999',
@@ -148,7 +155,8 @@ export default function PurchaseForm({ onSubmit, isLoading = false }: PurchaseFo
           <select
             value={formData.currency}
             onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-            className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            disabled={!!currency}
+            className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-muted disabled:cursor-not-allowed"
           >
             {CURRENCIES.map((curr) => (
               <option key={curr.code} value={curr.code}>

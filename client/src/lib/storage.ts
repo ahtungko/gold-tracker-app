@@ -137,3 +137,28 @@ export function generateExportFilename(itemType: 'gold' | 'silver' | 'all' = 'al
   return `${itemType}_export_${year}-${month}-${day}-${hours}-${minutes}.csv`;
 }
 
+const CURRENCY_STORAGE_KEY = 'gold_tracker_currency';
+
+/**
+ * Get the saved currency from local storage
+ */
+export function getCurrency(): string | null {
+  try {
+    return localStorage.getItem(CURRENCY_STORAGE_KEY);
+  } catch (error) {
+    console.error('Error reading currency from storage:', error);
+    return null;
+  }
+}
+
+/**
+ * Save the selected currency to local storage
+ */
+export function saveCurrency(currency: string): void {
+  try {
+    localStorage.setItem(CURRENCY_STORAGE_KEY, currency);
+  } catch (error) {
+    console.error('Error saving currency to storage:', error);
+  }
+}
+

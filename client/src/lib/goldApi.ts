@@ -23,7 +23,15 @@ export interface HistoricalData {
 /**
  * Format price for display
  */
-export function formatPrice(price: number, decimals: number = 2): string {
+export function formatPrice(price: number, currency?: string, decimals: number = 2): string {
+  if (currency) {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(price);
+  }
   return price.toFixed(decimals);
 }
 
