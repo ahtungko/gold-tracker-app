@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Purchase, PurchaseSummary } from '@/lib/types';
-import { getPurchases, savePurchase, deletePurchase, getCurrency, saveCurrency } from '@/lib/storage';
+import { getPurchases, savePurchase, deletePurchase, getCurrency, saveCurrency, clearCurrency } from '@/lib/storage';
 
 export function usePurchases() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -13,9 +13,11 @@ export function usePurchases() {
       const storedPurchases = getPurchases();
       setPurchases(storedPurchases);
 
-      const storedCurrency = getCurrency();
-      if (storedCurrency) {
-        setCurrency(storedCurrency);
+      if (storedPurchases.length > 0) {
+        const storedCurrency = getCurrency();
+        if (storedCurrency) {
+          setCurrency(storedCurrency);
+        }
       }
     } catch (error) {
       console.error('Failed to load data from storage:', error);
@@ -53,7 +55,14 @@ export function usePurchases() {
   const removePurchase = (id: string) => {
     try {
       deletePurchase(id);
-      setPurchases((prev) => prev.filter((p) => p.id !== id));
+      setPurchases((prev) => {
+        const newPurchases = prev.filter((p) => p.id !== id);
+        if (newPurchases.length === 0) {
+          clearCurrency();
+          setCurrency(null);
+        }
+        return newPurchases;
+      });
     } catch (error) {
       console.error('Failed to delete purchase:', error);
       throw error;

@@ -162,3 +162,14 @@ export function saveCurrency(currency: string): void {
   }
 }
 
+/**
+ * Clear the saved currency from local storage
+ */
+export function clearCurrency(): void {
+  try {
+    localStorage.removeItem(CURRENCY_STORAGE_KEY);
+  } catch (error) {
+    console.error('Error clearing currency from storage:', error);
+  }
+}
+
