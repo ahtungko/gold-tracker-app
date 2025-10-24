@@ -2,6 +2,7 @@ import { Purchase, PurchaseSummary } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/goldApi";
 import { exportToCSV, generateExportFilename } from "@/lib/storage";
+import { useTranslation } from 'react-i18next';
 
 interface PurchaseSummaryProps {
   purchases: Purchase[];
@@ -19,6 +20,8 @@ export default function PurchaseSummaryComponent({
   currency,
   currentPrices,
 }: PurchaseSummaryProps) {
+  const { t } = useTranslation();
+
   const handleExport = (itemType: "gold" | "silver" | "all") => {
     const filtered =
       itemType === "all"
@@ -26,7 +29,7 @@ export default function PurchaseSummaryComponent({
         : purchases.filter(p => p.itemType === itemType);
 
     if (filtered.length === 0) {
-      alert(`No ${itemType} purchases to export`);
+      alert(t('noPurchasesToExport', { itemType }));
       return;
     }
 
@@ -46,38 +49,38 @@ export default function PurchaseSummaryComponent({
       {goldPurchases.length > 0 && (
         <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="font-semibold text-yellow-400">Gold Holdings</h4>
+            <h4 className="font-semibold text-yellow-400">{t('goldHoldings')}</h4>
             <Button
               onClick={() => handleExport("gold")}
               size="sm"
               variant="outline"
               className="text-xs"
             >
-              Export Gold
+              {t('exportGold')}
             </Button>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <div>
-              <p className="text-muted-foreground text-xs">Weight</p>
+              <p className="text-muted-foreground text-xs">{t('weight')}</p>
               <p className="font-semibold">
                 {goldSummary.totalWeight.toFixed(2)}g
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">Cost</p>
+              <p className="text-muted-foreground text-xs">{t('cost')}</p>
               <p className="font-semibold">
                 {formatPrice(goldSummary.totalCost, currency || undefined)}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">Est. Value</p>
+              <p className="text-muted-foreground text-xs">{t('estimatedValue')}</p>
               <p className="font-semibold text-blue-400">
                 {formatPrice(goldSummary.estimatedValue, currency || undefined)}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">Est. Profit</p>
+              <p className="text-muted-foreground text-xs">{t('estimatedProfit')}</p>
               <p
                 className={`font-semibold ${goldSummary.estimatedProfit >= 0 ? "text-green-400" : "text-red-400"}`}
               >
@@ -93,38 +96,38 @@ export default function PurchaseSummaryComponent({
       {silverPurchases.length > 0 && (
         <div className="bg-slate-400/10 border border-slate-400/30 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="font-semibold text-slate-300">Silver Holdings</h4>
+            <h4 className="font-semibold text-slate-300">{t('silverHoldings')}</h4>
             <Button
               onClick={() => handleExport("silver")}
               size="sm"
               variant="outline"
               className="text-xs"
             >
-              Export Silver
+              {t('exportSilver')}
             </Button>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <div>
-              <p className="text-muted-foreground text-xs">Weight</p>
+              <p className="text-muted-foreground text-xs">{t('weight')}</p>
               <p className="font-semibold">
                 {silverSummary.totalWeight.toFixed(2)}g
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">Cost</p>
+              <p className="text-muted-foreground text-xs">{t('cost')}</p>
               <p className="font-semibold">
                 {formatPrice(silverSummary.totalCost, currency || undefined)}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">Est. Value</p>
+              <p className="text-muted-foreground text-xs">{t('estimatedValue')}</p>
               <p className="font-semibold text-blue-400">
                 {formatPrice(silverSummary.estimatedValue, currency || undefined)}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">Est. Profit</p>
+              <p className="text-muted-foreground text-xs">{t('estimatedProfit')}</p>
               <p
                 className={`font-semibold ${silverSummary.estimatedProfit >= 0 ? "text-green-400" : "text-red-400"}`}
               >
@@ -143,7 +146,7 @@ export default function PurchaseSummaryComponent({
           variant="default"
           className="w-full"
         >
-          Export All Purchases to CSV
+          {t('exportAllPurchases')}
         </Button>
       )}
     </div>

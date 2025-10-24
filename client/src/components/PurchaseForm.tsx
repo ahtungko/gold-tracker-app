@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Purchase, Purity } from '@/lib/types';
 import { CURRENCIES } from '@/lib/currencies';
+import { useTranslation } from 'react-i18next';
 
 interface PurchaseFormProps {
   onSubmit: (purchase: Omit<Purchase, 'createdAt'>) => void;
@@ -11,26 +12,27 @@ interface PurchaseFormProps {
 }
 
 const GOLD_TYPES = [
-  { value: 'gold_bar', label: 'Gold Bar' },
-  { value: 'gold_coin', label: 'Gold Coin' },
-  { value: 'jewelry', label: 'Jewelry' },
-  { value: 'charm', label: 'Charm' },
-  { value: 'gold_bean', label: 'Gold Bean' },
-  { value: 'paper_gold', label: 'Paper Gold' },
-  { value: 'other', label: 'Others' },
+  { value: 'gold_bar', labelKey: 'goldBar' },
+  { value: 'gold_coin', labelKey: 'goldCoin' },
+  { value: 'jewelry', labelKey: 'jewelry' },
+  { value: 'charm', labelKey: 'charm' },
+  { value: 'gold_bean', labelKey: 'goldBean' },
+  { value: 'paper_gold', labelKey: 'paperGold' },
+  { value: 'other', labelKey: 'other' },
 ];
 
-const PURITIES: { value: Purity; label: string }[] = [
-  { value: '999', label: '999.9' },
-  { value: '995', label: '999' },
-  { value: '916', label: '916' },
-  { value: '750', label: 'TNG Gold' },
-  { value: '585', label: 'Public Gold' },
-  { value: '375', label: 'Maybank Gold' },
-  { value: 'other', label: 'Others' },
+const PURITIES: { value: Purity; labelKey: string }[] = [
+  { value: '999', labelKey: 'purity999_9' },
+  { value: '995', labelKey: 'purity999' },
+  { value: '916', labelKey: 'purity916' },
+  { value: '750', labelKey: 'purityTNGGold' },
+  { value: '585', labelKey: 'purityPublicGold' },
+  { value: '375', labelKey: 'purityMaybankGold' },
+  { value: 'other', labelKey: 'other' },
 ];
 
 export default function PurchaseForm({ onSubmit, isLoading = false, currency, initialPurchase }: PurchaseFormProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     itemType: initialPurchase?.itemType || 'gold_bar',
     itemName: initialPurchase?.itemName || '',
@@ -56,25 +58,25 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
     const newErrors: Record<string, string> = {};
 
     if (!formData.itemName.trim()) {
-      newErrors.itemName = 'Item name is required';
+      newErrors.itemName = t('itemNameRequired');
     }
 
     const price = parseFloat(formData.pricePerGram);
     if (!formData.pricePerGram || isNaN(price) || price <= 0) {
-      newErrors.pricePerGram = 'Price per gram must be a positive number';
+      newErrors.pricePerGram = t('pricePerGramPositive');
     }
 
     const weight = parseFloat(formData.weight);
     if (!formData.weight || isNaN(weight) || weight <= 0) {
-      newErrors.weight = 'Weight must be a positive number';
+      newErrors.weight = t('weightPositive');
     }
 
     if (!formData.purchaseDate) {
-      newErrors.purchaseDate = 'Purchase date is required';
+      newErrors.purchaseDate = t('purchaseDateRequired');
     }
 
     if (formData.purchaseDate > today) {
-      newErrors.purchaseDate = 'Purchase date cannot be in the future';
+      newErrors.purchaseDate = t('purchaseDateNotInFuture');
     }
 
     setErrors(newErrors);
@@ -119,12 +121,12 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-muted/50 p-6 rounded-lg">
-      <h3 className="text-lg font-semibold">{initialPurchase ? 'Edit Purchase' : 'Add Purchase'}</h3>
+      <h3 className="text-lg font-semibold">{initialPurchase ? t('editPurchase') : t('addPurchase')}</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Gold Type */}
         <div>
-          <label className="block text-sm font-medium mb-1">Gold Type *</label>
+          <label className="block text-sm font-medium mb-1">{t('goldType')} *</label>
           <select
             value={formData.itemType}
             onChange={(e) => setFormData({ ...formData, itemType: e.target.value })}
@@ -132,7 +134,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
           >
             {GOLD_TYPES.map((type) => (
               <option key={type.value} value={type.value}>
-                {type.label}
+                {t(type.labelKey)}
               </option>
             ))}
           </select>
@@ -140,12 +142,12 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
 
         {/* Item Name */}
         <div>
-          <label className="block text-sm font-medium mb-1">Item Name *</label>
+          <label className="block text-sm font-medium mb-1">{t('itemName')} *</label>
           <input
             type="text"
             value={formData.itemName}
             onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
-            placeholder="e.g., 1oz Bar, Gold Pendant"
+            placeholder={t('itemNamePlaceholder')}
             className={`w-full px-3 py-2 rounded-md border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
               errors.itemName ? 'border-red-500' : 'border-border'
             }`}
@@ -155,7 +157,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
 
         {/* Currency */}
         <div>
-          <label className="block text-sm font-medium mb-1">Currency *</label>
+          <label className="block text-sm font-medium mb-1">{t('currency')} *</label>
           <select
             value={formData.currency}
             onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
@@ -172,7 +174,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
 
         {/* Price Per Gram */}
         <div>
-          <label className="block text-sm font-medium mb-1">Price Per Gram *</label>
+          <label className="block text-sm font-medium mb-1">{t('pricePerGram')} *</label>
           <input
             type="number"
             step="0.00000001"
@@ -188,7 +190,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
 
         {/* Weight */}
         <div>
-          <label className="block text-sm font-medium mb-1">Weight (grams) *</label>
+          <label className="block text-sm font-medium mb-1">{t('weightGrams')} *</label>
           <input
             type="number"
             step="0.01"
@@ -204,7 +206,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
 
         {/* Purity */}
         <div>
-          <label className="block text-sm font-medium mb-1">Purity *</label>
+          <label className="block text-sm font-medium mb-1">{t('purity')} *</label>
           <select
             value={formData.purity}
             onChange={(e) => setFormData({ ...formData, purity: e.target.value as Purity })}
@@ -212,7 +214,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
           >
             {PURITIES.map((purity) => (
               <option key={purity.value} value={purity.value}>
-                {purity.label}
+                {t(purity.labelKey)}
               </option>
             ))}
           </select>
@@ -220,7 +222,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
 
         {/* Purchase Date */}
         <div>
-          <label className="block text-sm font-medium mb-1">Purchase Date *</label>
+          <label className="block text-sm font-medium mb-1">{t('purchaseDate')} *</label>
           <input
             type="date"
             value={formData.purchaseDate}
@@ -238,13 +240,13 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
       {formData.pricePerGram && formData.weight && (
         <div className="bg-primary/10 p-3 rounded-md">
           <p className="text-sm">
-            Total Cost: <span className="font-semibold">{(parseFloat(formData.pricePerGram) * parseFloat(formData.weight)).toFixed(2)} {formData.currency}</span>
+            {t('totalCost')}: <span className="font-semibold">{(parseFloat(formData.pricePerGram) * parseFloat(formData.weight)).toFixed(2)} {formData.currency}</span>
           </p>
         </div>
       )}
 
       <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? 'Adding...' : 'Add Purchase'}
+        {isLoading ? t('adding') : initialPurchase ? t('updatePurchase') : t('addPurchase')}
       </Button>
     </form>
   );

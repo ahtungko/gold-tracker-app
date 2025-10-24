@@ -1,10 +1,13 @@
 import { GoldPrice, formatPrice } from "@/lib/goldApi";
+import { useTranslation } from 'react-i18next';
 
 interface PriceStatsProps {
   currentPrice: GoldPrice | null;
 }
 
 export function PriceStats({ currentPrice }: PriceStatsProps) {
+  const { t } = useTranslation();
+
   if (!currentPrice) {
     return null;
   }
@@ -15,7 +18,7 @@ export function PriceStats({ currentPrice }: PriceStatsProps) {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
       <div className="bg-card/50 rounded-lg p-4 border border-border">
         <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">
-          Change (XAU)
+          {t('changeXAU')}
         </p>
         <p
           className={`text-lg font-semibold ${currentPrice.chgXau >= 0 ? "text-green-400" : "text-red-400"}`}
@@ -30,27 +33,27 @@ export function PriceStats({ currentPrice }: PriceStatsProps) {
 
       <div className="bg-card/50 rounded-lg p-4 border border-border">
         <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">
-          Close Price
+          {t('closePrice')}
         </p>
         <p className="text-lg font-semibold text-primary">
           {formatPrice(currentPrice.xauClose)}
         </p>
-        <p className="text-xs text-muted-foreground mt-1">Previous</p>
+        <p className="text-xs text-muted-foreground mt-1">{t('previous')}</p>
       </div>
 
       <div className="bg-card/50 rounded-lg p-4 border border-border">
         <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">
-          Per Gram
+          {t('perGram')}
         </p>
         <p className="text-lg font-semibold text-primary">
           {formatPrice(perGram)}
         </p>
-        <p className="text-xs text-muted-foreground mt-1">1 gram</p>
+        <p className="text-xs text-muted-foreground mt-1">{t('oneGram')}</p>
       </div>
 
       <div className="bg-card/50 rounded-lg p-4 border border-border">
         <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">
-          Silver (XAG)
+          {t('silverXAG')}
         </p>
         <p
           className={`text-lg font-semibold ${currentPrice.chgXag >= 0 ? "text-green-400" : "text-red-400"}`}

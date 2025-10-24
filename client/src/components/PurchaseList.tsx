@@ -1,6 +1,7 @@
 import { Purchase } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/goldApi";
+import { useTranslation } from 'react-i18next';
 
 interface PurchaseListProps {
   purchases: Purchase[];
@@ -20,10 +21,12 @@ export default function PurchaseList({
   currency,
   currentPrices,
 }: PurchaseListProps) {
+  const { t } = useTranslation();
+
   if (purchases.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        <p>No purchases recorded yet. Add your first purchase above!</p>
+        <p>{t('noPurchasesYet')}</p>
       </div>
     );
   }
@@ -49,7 +52,7 @@ export default function PurchaseList({
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold uppercase px-2 py-1 rounded bg-primary/20">
-                    {purchase.itemType}
+                    {t(purchase.itemType)}
                   </span>
                   <span className="font-semibold">{purchase.itemName}</span>
                 </div>
@@ -60,10 +63,10 @@ export default function PurchaseList({
                   @ {formatPrice(purchase.pricePerGram, currency || undefined)}/g
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Purity: <span className="font-medium">{purchase.purity}</span>
+                  {t('purity')}: <span className="font-medium">{purchase.purity}</span>
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Purchased:{" "}
+                  {t('purchased')}:{" "}
                   {new Date(purchase.purchaseDate).toLocaleDateString()}
                 </p>
               </div>
@@ -72,13 +75,13 @@ export default function PurchaseList({
               <div className="space-y-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-xs text-muted-foreground">Total Cost</p>
+                    <p className="text-xs text-muted-foreground">{t('totalCost')}</p>
                     <p className="font-semibold text-lg">
                       {formatPrice(purchase.totalCost, currency || undefined)}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Est. Value</p>
+                    <p className="text-xs text-muted-foreground">{t('estimatedValue')}</p>
                     <p className="font-semibold text-lg text-blue-400">
                       {formatPrice(estimatedValue, currency || undefined)}
                     </p>
@@ -87,7 +90,7 @@ export default function PurchaseList({
 
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-xs text-muted-foreground">Est. Profit</p>
+                    <p className="text-xs text-muted-foreground">{t('estimatedProfit')}</p>
                     <p
                       className={`font-semibold ${profit >= 0 ? "text-green-400" : "text-red-400"}`}
                     >
@@ -96,7 +99,7 @@ export default function PurchaseList({
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Return</p>
+                    <p className="text-xs text-muted-foreground">{t('return')}</p>
                     <p
                       className={`font-semibold ${profit >= 0 ? "text-green-400" : "text-red-400"}`}
                     >
@@ -113,7 +116,7 @@ export default function PurchaseList({
                     size="sm"
                     className="flex-1"
                   >
-                    Edit
+                    {t('edit')}
                   </Button>
                   <Button
                     onClick={() => onDelete(purchase.id)}
@@ -121,7 +124,7 @@ export default function PurchaseList({
                     size="sm"
                     className="flex-1"
                   >
-                    Delete
+                    {t('delete')}
                   </Button>
                 </div>
               </div>

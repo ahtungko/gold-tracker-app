@@ -9,8 +9,10 @@ import { useIsMobile } from '@/hooks/useMobile';
 import { Button } from '@/components/ui/button';
 import { importFromCSV } from '@/lib/storage';
 import { GenericDialog } from '@/components/ui/GenericDialog'; // Import GenericDialog
+import { useTranslation } from 'react-i18next';
 
 export default function Tracker() {
+  const { t } = useTranslation();
   const { currentPrice } = useGoldPrice();
   const { purchases, addPurchase, removePurchase, updatePurchase, calculateSummary, currency } = usePurchases();
   const [successMessage, setSuccessMessage] = useState<string>('');
@@ -28,14 +30,14 @@ export default function Tracker() {
   const handleAddPurchase = (purchase: Omit<Purchase, 'createdAt'>) => {
     try {
       addPurchase(purchase);
-      setSuccessMessage(`${purchase.itemName} added successfully!`);
+      setSuccessMessage(t('purchaseAddedSuccessfully', { itemName: purchase.itemName }));
       setTimeout(() => setSuccessMessage(''), 3000);
       if (isMobile) {
         setIsFormVisible(false);
       }
     } catch (error) {
       console.error('Failed to add purchase:', error);
-      alert('Failed to add purchase. Please try again.');
+      alert(t('failedToAddPurchase'));
     }
   };
 
@@ -48,25 +50,25 @@ export default function Tracker() {
     if (!editingPurchase) return;
     try {
       updatePurchase(editingPurchase.id, purchase);
-      setSuccessMessage(`${purchase.itemName} updated successfully!`);
+      setSuccessMessage(t('purchaseUpdatedSuccessfully', { itemName: purchase.itemName }));
       setTimeout(() => setSuccessMessage(''), 3000);
       setIsEditDialogOpen(false);
       setEditingPurchase(null);
     } catch (error) {
       console.error('Failed to update purchase:', error);
-      alert('Failed to update purchase. Please try again.');
+      alert(t('failedToUpdatePurchase'));
     }
   };
 
   const handleDeletePurchase = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this purchase?')) {
+    if (window.confirm(t('areYouSureDeletePurchase'))) {
       try {
         removePurchase(id);
-        setSuccessMessage('Purchase deleted successfully!');
+        setSuccessMessage(t('purchaseDeletedSuccessfully'));
         setTimeout(() => setSuccessMessage(''), 3000);
       } catch (error) {
         console.error('Failed to delete purchase:', error);
-        alert('Failed to delete purchase. Please try again.');
+        alert(t('failedToDeletePurchase'));
       }
     }
   };
@@ -78,14 +80,14 @@ export default function Tracker() {
     setIsImporting(true);
     try {
       await importFromCSV(file);
-      setSuccessMessage('Purchases imported successfully!');
+      setSuccessMessage(t('purchasesImportedSuccessfully'));
       setTimeout(() => {
         setSuccessMessage('');
         window.location.reload();
       }, 2000);
     } catch (error) {
       console.error('Failed to import purchases:', error);
-      alert('Failed to import purchases. Please check the file and try again.');
+      alert(t('failedToImportPurchases'));
     } finally {
       setIsImporting(false);
     }
@@ -98,8 +100,8 @@ export default function Tracker() {
       {/* Header */}
       <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur">
         <div className="container py-4">
-          <div className="flex items-center space-x-4">            <a href="/" className="text-primary hover:text-primary/80 transition-colors">              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>            </a>            <h1 className="text-2xl font-bold text-primary">Purchase Tracker</h1>          </div>
-          <p className="text-sm text-muted-foreground mt-1">Track your gold and silver purchases</p>
+          <div className="flex items-center space-x-4">            <a href="/" className="text-primary hover:text-primary/80 transition-colors">              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>            </a>            <h1 className="text-2xl font-bold text-primary">{t('purchaseTracker')}</h1>          </div>
+          <p className="text-sm text-muted-foreground mt-1">{t('trackYourPurchases')}</p>
         </div>
       </header>
 
@@ -121,7 +123,7 @@ export default function Tracker() {
                   onClick={() => setIsFormVisible(!isFormVisible)}
                   className="w-full"
                 >
-                  {isFormVisible ? 'Hide Form' : 'Add Purchase'}
+                  {isFormVisible ? t('hideForm') : t('addPurchase')}
                 </Button>
                 <Button
                   onClick={() => fileInputRef.current?.click()}
@@ -129,7 +131,7 @@ export default function Tracker() {
                   variant="outline"
                   disabled={isImporting}
                 >
-                  {isImporting ? 'Importing...' : 'Import from CSV'}
+                  {isImporting ? t('importing') : t('importFromCSV')}
                 </Button>
                 <input
                   type="file"
@@ -149,7 +151,7 @@ export default function Tracker() {
                   variant="outline"
                   disabled={isImporting}
                 >
-                  {isImporting ? 'Importing...' : 'Import from CSV'}
+                  {isImporting ? t('importing') : t('importFromCSV')}
                 </Button>
                 <input
                   type="file"
@@ -179,7 +181,7 @@ export default function Tracker() {
 
             {/* Purchase List */}
             <div>
-              <h2 className="text-lg font-semibold mb-4">Your Purchases</h2>
+              <h2 className="text-lg font-semibold mb-4">{t('yourPurchases')}</h2>
               <PurchaseList
                 purchases={purchases}
                 onDelete={handleDeletePurchase}
@@ -196,8 +198,8 @@ export default function Tracker() {
 
         {/* Edit Purchase Dialog */}
         <GenericDialog
-          title="Edit Purchase"
-          description="Update the details of your gold or silver purchase."
+          title={t('editPurchase')}
+          description={t('updatePurchaseDetails')}
           isOpen={isEditDialogOpen}
           onClose={() => setIsEditDialogOpen(false)}
         >

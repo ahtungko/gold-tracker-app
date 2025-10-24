@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { useGoldPrice, TimeRange } from '@/hooks/useGoldPrice';
 import { formatPrice, formatPercentage } from '@/lib/goldApi';
 import { CURRENCIES } from '@/lib/currencies';
+import { useTranslation } from 'react-i18next';
 
 type Unit = 'oz' | 'gram';
 
 export default function Home() {
+  const { t, i18n } = useTranslation();
   const { currentPrice, loading, currency, setCurrency, timeRange, setTimeRange, refetch, hasHistoricalData } =
     useGoldPrice();
   const [unit, setUnit] = useState<Unit>('gram');
@@ -17,6 +19,10 @@ export default function Home() {
 
   const handleUnitChange = (newUnit: Unit) => {
     setUnit(newUnit);
+  };
+
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
   };
 
   // Convert oz to gram (1 oz = 31.1035 grams)
@@ -37,11 +43,19 @@ export default function Home() {
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-primary">Gold & Silver Tracker</h1>
+              <h1 className="text-2xl font-bold text-primary">{t('goldSilverTracker')}</h1>
             </div>
             <nav className="flex gap-4">
-              <a href="/" className="text-sm font-medium hover:text-primary transition-colors">Prices</a>
-              <a href="/tracker" className="text-sm font-medium hover:text-primary transition-colors">Tracker</a>
+              <a href="/" className="text-sm font-medium hover:text-primary transition-colors">{t('prices')}</a>
+              <a href="/tracker" className="text-sm font-medium hover:text-primary transition-colors">{t('tracker')}</a>
+              <select
+                value={i18n.language}
+                onChange={(e) => handleLanguageChange(e.target.value)}
+                className="px-2 py-1 rounded-md border border-border bg-background text-foreground text-sm"
+              >
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+              </select>
             </nav>
           </div>
         </div>
@@ -54,7 +68,7 @@ export default function Home() {
           {/* Currency Selector */}
           <div className="flex gap-2 items-center">
             <label htmlFor="currency-select" className="text-sm text-muted-foreground">
-              Currency:
+              {t('currency')}:
             </label>
             <select
               id="currency-select"
@@ -72,7 +86,7 @@ export default function Home() {
 
           {/* Unit Selector */}
           <div className="flex gap-2">
-            <span className="text-sm text-muted-foreground self-center">Unit:</span>
+            <span className="text-sm text-muted-foreground self-center">{t('unit')}:</span>
             <Button
               onClick={() => handleUnitChange('gram')}
               variant={unit === 'gram' ? 'default' : 'outline'}
@@ -83,7 +97,7 @@ export default function Home() {
                   : 'border-border text-foreground hover:bg-primary/10'
               }
             >
-              Gram
+              {t('gram')}
             </Button>
             <Button
               onClick={() => handleUnitChange('oz')}
@@ -95,7 +109,7 @@ export default function Home() {
                   : 'border-border text-foreground hover:bg-primary/10'
               }
             >
-              Ounce
+              {t('ounce')}
             </Button>
           </div>
         </div>
@@ -106,7 +120,7 @@ export default function Home() {
           <div className="bg-card rounded-lg p-8 border border-border">
             {currentPrice && (
               <div>
-                <p className="text-muted-foreground text-sm mb-4">Gold Price (XAU) / {currency}</p>
+                <p className="text-muted-foreground text-sm mb-4">{t('goldPriceXAU')} / {currency}</p>
                 <div className="mb-6">
                   <div className="flex items-baseline gap-3">
                     <h2 className="text-4xl font-bold text-primary">
@@ -119,20 +133,20 @@ export default function Home() {
                       {currentPrice.pcXau >= 0 ? '+' : ''}{formatPercentage(currentPrice.pcXau)}
                     </p>
                   </div>
-                  <p className="text-muted-foreground text-sm mt-2">per {getDisplayUnit()}</p>
+                  <p className="text-muted-foreground text-sm mt-2">{t('per')} {getDisplayUnit()}</p>
                 </div>
 
                 {/* Additional Gold Info */}
                 <div className="border-t border-border pt-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Close Price</p>
+                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">{t('closePrice')}</p>
                       <p className="text-lg font-semibold text-primary">
                         {formatPrice(getDisplayPrice(currentPrice.xauClose))}
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Updated</p>
+                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">{t('updated')}</p>
                       <p className="text-lg font-semibold text-primary">
                         {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
                       </p>
@@ -141,14 +155,14 @@ export default function Home() {
                 </div>
               </div>
             )}
-            {loading && !currentPrice && <div className="text-muted-foreground">Loading price data...</div>}
+            {loading && !currentPrice && <div className="text-muted-foreground">{t('loadingPriceData')}</div>}
           </div>
 
           {/* Silver Card */}
           <div className="bg-card rounded-lg p-8 border border-border">
             {currentPrice && (
               <div>
-                <p className="text-muted-foreground text-sm mb-4">Silver Price (XAG) / {currency}</p>
+                <p className="text-muted-foreground text-sm mb-4">{t('silverPriceXAG')} / {currency}</p>
                 <div className="mb-6">
                   <div className="flex items-baseline gap-3">
                     <h2 className="text-4xl font-bold text-blue-300">
@@ -161,20 +175,20 @@ export default function Home() {
                       {currentPrice.pcXag >= 0 ? '+' : ''}{formatPercentage(currentPrice.pcXag)}
                     </p>
                   </div>
-                  <p className="text-muted-foreground text-sm mt-2">per {getDisplayUnit()}</p>
+                  <p className="text-muted-foreground text-sm mt-2">{t('per')} {getDisplayUnit()}</p>
                 </div>
 
                 {/* Additional Silver Info */}
                 <div className="border-t border-border pt-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Close Price</p>
+                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">{t('closePrice')}</p>
                       <p className="text-lg font-semibold text-blue-300">
                         {formatPrice(getDisplayPrice(currentPrice.xagClose))}
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Updated</p>
+                      <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">{t('updated')}</p>
                       <p className="text-lg font-semibold text-blue-300">
                         {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
                       </p>
@@ -183,7 +197,7 @@ export default function Home() {
                 </div>
               </div>
             )}
-            {loading && !currentPrice && <div className="text-muted-foreground">Loading price data...</div>}
+            {loading && !currentPrice && <div className="text-muted-foreground">{t('loadingPriceData')}</div>}
           </div>
         </div>
 
