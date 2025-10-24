@@ -32,7 +32,7 @@ export function savePurchase(purchase: Purchase): void {
 /**
  * Update an existing purchase
  */
-export function updatePurchase(id: string, updated: Partial<Purchase>): void {
+export function updatePurchaseInStorage(id: string, updated: Partial<Purchase>): void {
   try {
     const purchases = getPurchases();
     const index = purchases.findIndex((p) => p.id === id);

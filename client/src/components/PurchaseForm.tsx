@@ -4,9 +4,10 @@ import { Purchase, Purity } from '@/lib/types';
 import { CURRENCIES } from '@/lib/currencies';
 
 interface PurchaseFormProps {
-  onSubmit: (purchase: Omit<Purchase, 'id' | 'createdAt'>) => void;
+  onSubmit: (purchase: Omit<Purchase, 'createdAt'>) => void;
   isLoading?: boolean;
   currency?: string | null;
+  initialPurchase?: Purchase; // New prop for editing
 }
 
 const GOLD_TYPES = [
@@ -29,24 +30,24 @@ const PURITIES: { value: Purity; label: string }[] = [
   { value: 'other', label: 'Others' },
 ];
 
-export default function PurchaseForm({ onSubmit, isLoading = false, currency }: PurchaseFormProps) {
+export default function PurchaseForm({ onSubmit, isLoading = false, currency, initialPurchase }: PurchaseFormProps) {
   const [formData, setFormData] = useState({
-    itemType: 'gold_bar',
-    itemName: '',
-    currency: currency || 'MYR',
-    pricePerGram: '',
-    weight: '',
-    purity: '999' as Purity,
-    purchaseDate: new Date().toISOString().split('T')[0],
+    itemType: initialPurchase?.itemType || 'gold_bar',
+    itemName: initialPurchase?.itemName || '',
+    currency: initialPurchase?.currency || currency || 'MYR',
+    pricePerGram: initialPurchase?.pricePerGram.toString() || '',
+    weight: initialPurchase?.weight.toString() || '',
+    purity: initialPurchase?.purity || ('999' as Purity),
+    purchaseDate: initialPurchase?.purchaseDate || new Date().toISOString().split('T')[0],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (currency) {
+    if (currency && !initialPurchase) {
       setFormData((prev) => ({ ...prev, currency }));
     }
-  }, [currency]);
+  }, [currency, initialPurchase]);
 
   // Get today's date for max date validation
   const today = new Date().toISOString().split('T')[0];
@@ -87,7 +88,8 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency }: 
       return;
     }
 
-    const purchase: Omit<Purchase, 'id' | 'createdAt'> = {
+    const purchase: Omit<Purchase, 'createdAt'> = {
+      ...(initialPurchase && { id: initialPurchase.id }), // Include ID if editing
       itemType: 'gold',
       itemName: formData.itemName.trim(),
       currency: formData.currency,
@@ -100,22 +102,24 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency }: 
 
     onSubmit(purchase);
 
-    // Reset form
-    setFormData({
-      itemType: 'gold_bar',
-      itemName: '',
-      currency: currency || 'MYR',
-      pricePerGram: '',
-      weight: '',
-      purity: '999',
-      purchaseDate: new Date().toISOString().split('T')[0],
-    });
-    setErrors({});
+    // Reset form only if adding a new purchase
+    if (!initialPurchase) {
+      setFormData({
+        itemType: 'gold_bar',
+        itemName: '',
+        currency: currency || 'MYR',
+        pricePerGram: '',
+        weight: '',
+        purity: '999',
+        purchaseDate: new Date().toISOString().split('T')[0],
+      });
+      setErrors({});
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-muted/50 p-6 rounded-lg">
-      <h3 className="text-lg font-semibold">Add Purchase</h3>
+      <h3 className="text-lg font-semibold">{initialPurchase ? 'Edit Purchase' : 'Add Purchase'}</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Gold Type */}

@@ -8,13 +8,16 @@ import { Purchase } from '@/lib/types';
 import { useIsMobile } from '@/hooks/useMobile';
 import { Button } from '@/components/ui/button';
 import { importFromCSV } from '@/lib/storage';
+import { GenericDialog } from '@/components/ui/GenericDialog'; // Import GenericDialog
 
 export default function Tracker() {
   const { currentPrice } = useGoldPrice();
-  const { purchases, addPurchase, removePurchase, calculateSummary, currency } = usePurchases();
+  const { purchases, addPurchase, removePurchase, updatePurchase, calculateSummary, currency } = usePurchases();
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null); // State for the purchase being edited
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false); // State to control edit dialog visibility
   const isMobile = useIsMobile();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -22,7 +25,7 @@ export default function Tracker() {
   const goldPrice = currentPrice?.xauPrice || 0;
   const silverPrice = currentPrice?.xagPrice || 0;
 
-  const handleAddPurchase = (purchase: Omit<Purchase, 'id' | 'createdAt'>) => {
+  const handleAddPurchase = (purchase: Omit<Purchase, 'createdAt'>) => {
     try {
       addPurchase(purchase);
       setSuccessMessage(`${purchase.itemName} added successfully!`);
@@ -33,6 +36,25 @@ export default function Tracker() {
     } catch (error) {
       console.error('Failed to add purchase:', error);
       alert('Failed to add purchase. Please try again.');
+    }
+  };
+
+  const handleEditPurchase = (purchase: Purchase) => {
+    setEditingPurchase(purchase);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdatePurchase = (purchase: Purchase) => {
+    if (!editingPurchase) return;
+    try {
+      updatePurchase(editingPurchase.id, purchase);
+      setSuccessMessage(`${purchase.itemName} updated successfully!`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+      setIsEditDialogOpen(false);
+      setEditingPurchase(null);
+    } catch (error) {
+      console.error('Failed to update purchase:', error);
+      alert('Failed to update purchase. Please try again.');
     }
   };
 
@@ -161,6 +183,7 @@ export default function Tracker() {
               <PurchaseList
                 purchases={purchases}
                 onDelete={handleDeletePurchase}
+                onEdit={handleEditPurchase} // Pass the new handler
                 currency={currency}
                 currentPrices={{
                   gold: goldPrice,
@@ -170,6 +193,22 @@ export default function Tracker() {
             </div>
           </div>
         </div>
+
+        {/* Edit Purchase Dialog */}
+        <GenericDialog
+          title="Edit Purchase"
+          description="Update the details of your gold or silver purchase."
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+        >
+          {editingPurchase && (
+            <PurchaseForm
+              initialPurchase={editingPurchase}
+              onSubmit={handleUpdatePurchase}
+              currency={currency}
+            />
+          )}
+        </GenericDialog>
       </main>
     </div>
   );

@@ -5,6 +5,7 @@ import { formatPrice } from "@/lib/goldApi";
 interface PurchaseListProps {
   purchases: Purchase[];
   onDelete: (id: string) => void;
+  onEdit: (purchase: Purchase) => void; // New prop for editing
   currency: string | null;
   currentPrices: {
     gold: number;
@@ -15,6 +16,7 @@ interface PurchaseListProps {
 export default function PurchaseList({
   purchases,
   onDelete,
+  onEdit,
   currency,
   currentPrices,
 }: PurchaseListProps) {
@@ -104,14 +106,24 @@ export default function PurchaseList({
                   </div>
                 </div>
 
-                <Button
-                  onClick={() => onDelete(purchase.id)}
-                  variant="destructive"
-                  size="sm"
-                  className="w-full mt-2"
-                >
-                  Delete
-                </Button>
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    onClick={() => onEdit(purchase)}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    onClick={() => onDelete(purchase.id)}
+                    variant="destructive"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    Delete
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

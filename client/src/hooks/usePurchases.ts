@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Purchase, PurchaseSummary } from '@/lib/types';
-import { getPurchases, savePurchase, deletePurchase, getCurrency, saveCurrency, clearCurrency } from '@/lib/storage';
+import { getPurchases, savePurchase, deletePurchase, getCurrency, saveCurrency, clearCurrency, updatePurchaseInStorage } from '@/lib/storage';
 
 export function usePurchases() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -91,12 +91,26 @@ export function usePurchases() {
     };
   };
 
+  // Update an existing purchase
+  const updatePurchase = (id: string, updatedPurchase: Omit<Purchase, 'createdAt'>) => {
+    try {
+      updatePurchaseInStorage(id, updatedPurchase);
+      setPurchases((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, ...updatedPurchase } : p))
+      );
+    } catch (error) {
+      console.error('Failed to update purchase:', error);
+      throw error;
+    }
+  };
+
   return {
     purchases,
     loading,
     currency,
     addPurchase,
     removePurchase,
+    updatePurchase,
     calculateSummary,
   };
 }
