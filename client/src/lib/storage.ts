@@ -137,7 +137,7 @@ export function generateExportFilename(itemType: 'gold' | 'silver' | 'all' = 'al
   return `${itemType}_export_${year}-${month}-${day}-${hours}-${minutes}.csv`;
 }
 
-const CURRENCY_STORAGE_KEY = 'gold_tracker_currency';
+import { CURRENCY_STORAGE_KEY } from '@shared/const';
 
 /**
  * Get the saved currency from local storage
