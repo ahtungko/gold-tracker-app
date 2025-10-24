@@ -60,7 +60,7 @@ export default function Home() {
               id="currency-select"
               value={currency}
               onChange={(e) => handleCurrencyChange(e.target.value)}
-              className="px-3 py-2 rounded-md border border-border bg-background text-foreground hover:bg-background/80 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full max-w-xs px-3 py-2 rounded-md border border-border bg-background text-foreground hover:bg-background/80 focus:outline-none focus:ring-2 focus:ring-primary"
             >
               {CURRENCIES.map((curr) => (
                 <option key={curr.code} value={curr.code}>
