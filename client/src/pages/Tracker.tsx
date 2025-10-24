@@ -5,11 +5,15 @@ import PurchaseForm from '@/components/PurchaseForm';
 import PurchaseList from '@/components/PurchaseList';
 import PurchaseSummary from '@/components/PurchaseSummary';
 import { Purchase } from '@/lib/types';
+import { useIsMobile } from '@/hooks/useMobile';
+import { Button } from '@/components/ui/button';
 
 export default function Tracker() {
   const { currentPrice } = useGoldPrice();
   const { purchases, addPurchase, removePurchase, calculateSummary } = usePurchases();
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const isMobile = useIsMobile();
 
   // Extract prices from API response
   const goldPrice = currentPrice?.xauPrice || 0;
@@ -20,6 +24,9 @@ export default function Tracker() {
       addPurchase(purchase);
       setSuccessMessage(`${purchase.itemName} added successfully!`);
       setTimeout(() => setSuccessMessage(''), 3000);
+      if (isMobile) {
+        setIsFormVisible(false);
+      }
     } catch (error) {
       console.error('Failed to add purchase:', error);
       alert('Failed to add purchase. Please try again.');
@@ -46,7 +53,7 @@ export default function Tracker() {
       {/* Header */}
       <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur">
         <div className="container py-4">
-          <div className="flex items-center space-x-4">            <a href="/" className="text-primary hover:text-primary/80 transition-colors">              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>            </a>            <h1 className="text-2xl font-bold text-primary">Purchase Tracker</h1>          </div>
+          <div className="flex items-center space-x-4">            <a href="/" className="text-primary hover:text-primary/80 transition-colors">              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>            </a>            <h1 className="text-2xl font-bold text-primary">Purchase Tracker</h1>          </div>
           <p className="text-sm text-muted-foreground mt-1">Track your gold and silver purchases</p>
         </div>
       </header>
@@ -63,7 +70,19 @@ export default function Tracker() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Form */}
           <div className="lg:col-span-1">
-            <PurchaseForm onSubmit={handleAddPurchase} />
+            {isMobile ? (
+              <div className="flex flex-col gap-4">
+                <Button
+                  onClick={() => setIsFormVisible(!isFormVisible)}
+                  className="w-full"
+                >
+                  {isFormVisible ? 'Hide Form' : 'Add Purchase'}
+                </Button>
+                {isFormVisible && <PurchaseForm onSubmit={handleAddPurchase} />}
+              </div>
+            ) : (
+              <PurchaseForm onSubmit={handleAddPurchase} />
+            )}
           </div>
 
           {/* Right Column - List and Summary */}
