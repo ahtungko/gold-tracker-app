@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useGoldPrice } from '@/hooks/useGoldPrice';
 import { usePurchases } from '@/hooks/usePurchases';
 import PurchaseForm from '@/components/PurchaseForm';
@@ -7,13 +7,16 @@ import PurchaseSummary from '@/components/PurchaseSummary';
 import { Purchase } from '@/lib/types';
 import { useIsMobile } from '@/hooks/useMobile';
 import { Button } from '@/components/ui/button';
+import { importFromCSV } from '@/lib/storage';
 
 export default function Tracker() {
   const { currentPrice } = useGoldPrice();
   const { purchases, addPurchase, removePurchase, calculateSummary, currency } = usePurchases();
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const isMobile = useIsMobile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Extract prices from API response
   const goldPrice = currentPrice?.xauPrice || 0;
@@ -43,6 +46,26 @@ export default function Tracker() {
         console.error('Failed to delete purchase:', error);
         alert('Failed to delete purchase. Please try again.');
       }
+    }
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      await importFromCSV(file);
+      setSuccessMessage('Purchases imported successfully!');
+      setTimeout(() => {
+        setSuccessMessage('');
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to import purchases:', error);
+      alert('Failed to import purchases. Please check the file and try again.');
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -78,10 +101,42 @@ export default function Tracker() {
                 >
                   {isFormVisible ? 'Hide Form' : 'Add Purchase'}
                 </Button>
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full"
+                  variant="outline"
+                  disabled={isImporting}
+                >
+                  {isImporting ? 'Importing...' : 'Import from CSV'}
+                </Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImport}
+                  accept=".csv"
+                  className="hidden"
+                />
                 {isFormVisible && <PurchaseForm onSubmit={handleAddPurchase} currency={currency} />}
               </div>
             ) : (
-              <PurchaseForm onSubmit={handleAddPurchase} currency={currency} />
+              <div className="flex flex-col gap-4">
+                <PurchaseForm onSubmit={handleAddPurchase} currency={currency} />
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full"
+                  variant="outline"
+                  disabled={isImporting}
+                >
+                  {isImporting ? 'Importing...' : 'Import from CSV'}
+                </Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImport}
+                  accept=".csv"
+                  className="hidden"
+                />
+              </div>
             )}
           </div>
 

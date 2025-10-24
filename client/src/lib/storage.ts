@@ -1,4 +1,4 @@
-import { Purchase } from './types';
+import { Purchase, Purity } from './types';
 
 const STORAGE_KEY = 'gold_tracker_purchases';
 
@@ -70,6 +70,63 @@ export function clearAllPurchases(): void {
     console.error('Error clearing purchases:', error);
     throw new Error('Failed to clear purchases');
   }
+}
+
+/**
+ * Save all purchases to local storage
+ */
+export function saveAllPurchases(purchases: Purchase[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(purchases));
+  } catch (error) {
+    console.error('Error saving all purchases to storage:', error);
+    throw new Error('Failed to save all purchases');
+  }
+}
+
+/**
+ * Import purchases from a CSV file
+ */
+export function importFromCSV(file: File): Promise<Purchase[]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      try {
+        const csv = event.target?.result as string;
+        const rows = csv.split('\n').slice(1);
+        const purchases: Purchase[] = rows.map((row) => {
+          const [itemType, itemName, currency, pricePerGram, weight, purity, totalCost, purchaseDate, createdAt] = row.split(',').map(cell => cell.replace(/"/g, ''));
+
+          return {
+            id: `purchase_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            itemType: itemType as 'gold' | 'silver',
+            itemName,
+            currency,
+            pricePerGram: parseFloat(pricePerGram),
+            weight: parseFloat(weight),
+            purity: purity as Purity,
+            totalCost: parseFloat(totalCost),
+            purchaseDate,
+            createdAt,
+          };
+        });
+
+        saveAllPurchases(purchases);
+        resolve(purchases);
+      } catch (error) {
+        console.error('Error parsing CSV:', error);
+        reject(new Error('Failed to parse CSV file'));
+      }
+    };
+
+    reader.onerror = (error) => {
+      console.error('Error reading file:', error);
+      reject(new Error('Failed to read file'));
+    };
+
+    reader.readAsText(file);
+  });
 }
 
 /**
