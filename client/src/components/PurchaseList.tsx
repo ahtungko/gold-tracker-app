@@ -1,6 +1,6 @@
 import { Purchase } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/goldApi";
+import { formatPriceCeil2 } from "@/lib/goldApi";
 import { useTranslation } from 'react-i18next';
 import { decimalMultiply, decimalDivide, decimalSubtract, formatDecimal } from '@/lib/decimal';
 
@@ -64,7 +64,7 @@ export default function PurchaseList({
                   <span className="font-medium">
                     {formatDecimal(purchase.weight, { maxFractionDigits: 8, trimTrailingZeros: true, mode: 'truncate' })}g
                   </span>{" "}
-                  @ {formatPrice(purchase.pricePerGram, currency || undefined)}/g
+                  @ {formatPriceCeil2(purchase.pricePerGram, currency || undefined)}/g
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {t('purity')}: <span className="font-medium">{purchase.purity}</span>
@@ -81,13 +81,13 @@ export default function PurchaseList({
                   <div>
                     <p className="text-xs text-muted-foreground">{t('totalCost')}</p>
                     <p className="font-semibold text-lg">
-                      {formatPrice(purchase.totalCost, currency || undefined)}
+                      {formatPriceCeil2(purchase.totalCost, currency || undefined)}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">{t('estimatedValue')}</p>
                     <p className="font-semibold text-lg text-blue-400">
-                      {formatPrice(estimatedValue, currency || undefined)}
+                      {formatPriceCeil2(estimatedValue, currency || undefined)}
                     </p>
                   </div>
                 </div>
@@ -99,7 +99,7 @@ export default function PurchaseList({
                       className={`font-semibold ${profit >= 0 ? "text-green-400" : "text-red-400"}`}
                     >
                       {profit >= 0 ? "+" : ""}
-                      {formatPrice(profit, currency || undefined)}
+                      {formatPriceCeil2(profit, currency || undefined)}
                     </p>
                   </div>
                   <div className="text-right">
