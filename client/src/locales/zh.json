@@ -20,6 +20,9 @@
     "updated": "更新于",
     "loadingPriceData": "正在加载价格数据...",
     "silverPriceXAG": "白银价格 (XAG)",
+    "price": {
+      "unitLabel": "g/oz"
+    },
     "purchaseTracker": "购买追踪器",
     "trackYourPurchases": "追踪您的黄金和白银购买",
     "hideForm": "隐藏表单",
