@@ -1,10 +1,12 @@
 import { cn } from "@/lib/utils";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { Component, ReactNode } from "react";
-import { withTranslation, WithTranslationProps } from 'react-i18next';
+import { withTranslation } from 'react-i18next';
+import { TFunction } from 'i18next';
 
-interface Props extends WithTranslationProps {
+interface Props {
   children: ReactNode;
+  t: TFunction;
 }
 
 interface State {
