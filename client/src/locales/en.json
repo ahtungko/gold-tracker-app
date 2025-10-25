@@ -20,6 +20,9 @@
     "updated": "Updated",
     "loadingPriceData": "Loading price data...",
     "silverPriceXAG": "Silver Price (XAG)",
+    "price": {
+      "unitLabel": "g/oz"
+    },
     "purchaseTracker": "Purchase Tracker",
     "trackYourPurchases": "Track your gold and silver purchases",
     "hideForm": "Hide Form",

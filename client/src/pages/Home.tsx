@@ -17,6 +17,7 @@ export default function Home() {
   const { t } = useTranslation();
   const { currentPrice, loading, currency, setCurrency } = useGoldPrice();
   const [unit, setUnit] = useState<Unit>("gram");
+  const unitLabel = t("price.unitLabel");
 
   const handleCurrencyChange = (newCurrency: string) => {
     setCurrency(newCurrency);
@@ -154,9 +155,7 @@ export default function Home() {
                       {formatPercentage(currentPrice.pcXau)}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {t("perUnit", { unit: t(unit === "gram" ? "gram" : "ounce") })}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{unitLabel}</p>
                 </header>
 
                 <div className="grid grid-cols-2 gap-4 border-t border-border/70 pt-4">
@@ -215,9 +214,7 @@ export default function Home() {
                       {formatPercentage(currentPrice.pcXag)}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {t("perUnit", { unit: t(unit === "gram" ? "gram" : "ounce") })}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{unitLabel}</p>
                 </header>
 
                 <div className="grid grid-cols-2 gap-4 border-t border-border/70 pt-4">
