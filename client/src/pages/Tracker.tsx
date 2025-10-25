@@ -12,6 +12,7 @@ import { useIsMobile } from '@/hooks/useMobile';
 import { Button } from '@/components/ui/button';
 import { importFromCSV } from '@/lib/storage';
 import { GenericDialog } from '@/components/ui/GenericDialog';
+import { PageTransition } from '@/lib/animations';
 import { useTranslation } from 'react-i18next';
 
 export default function Tracker() {
@@ -107,7 +108,7 @@ export default function Tracker() {
   const summary = calculateSummary(goldPrice, silverPrice);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <PageTransition className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
         <div className="container py-4 space-y-3">
@@ -259,6 +260,6 @@ export default function Tracker() {
           )}
         </GenericDialog>
       </main>
-    </div>
+    </PageTransition>
   );
 }
