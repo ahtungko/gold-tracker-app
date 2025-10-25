@@ -1,18 +1,42 @@
 import * as React from "react";
 
+import { AnimatedCard } from "@/lib/animations";
+import { radius, shadow } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card"
-      className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
-        className
-      )}
-      {...props}
-    />
+type CardProps = React.ComponentProps<"div"> & {
+  animated?: boolean;
+  animationDelay?: number;
+  disableAnimation?: boolean;
+};
+
+function Card({
+  className,
+  animated = false,
+  animationDelay = 0,
+  disableAnimation = false,
+  ...props
+}: CardProps) {
+  const classes = cn(
+    "bg-card text-card-foreground flex flex-col gap-6 border py-6",
+    radius.lg,
+    shadow.sm,
+    className
   );
+
+  if (animated) {
+    return (
+      <AnimatedCard
+        data-slot="card"
+        delay={animationDelay}
+        disableAnimation={disableAnimation}
+        className={classes}
+        {...props}
+      />
+    );
+  }
+
+  return <div data-slot="card" className={classes} {...props} />;
 }
 
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {

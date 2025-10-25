@@ -43,7 +43,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <PageTransition className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
         <div className="container py-4 space-y-3">
@@ -226,7 +226,7 @@ export default function Home() {
 
 
       </main>
-    </div>
+    </PageTransition>
   );
 }
 

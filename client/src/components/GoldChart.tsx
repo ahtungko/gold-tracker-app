@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { HistoricalData } from '@/lib/goldApi';
+import { Spinner } from './ui/spinner';
 
 interface GoldChartProps {
   data: HistoricalData[];
@@ -17,22 +18,23 @@ interface GoldChartProps {
 export function GoldChart({ data, loading }: GoldChartProps) {
   if (loading) {
     return (
-      <div className="w-full h-64 flex items-center justify-center bg-card rounded-lg">
-        <div className="text-muted-foreground">Loading chart...</div>
+      <div className="w-full h-64 flex items-center justify-center gap-2 bg-card rounded-[var(--radius-lg)] border">
+        <Spinner className="size-5" />
+        <div className="text-muted-foreground text-sm">Loading chart...</div>
       </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="w-full h-64 flex items-center justify-center bg-card rounded-lg">
-        <div className="text-muted-foreground">No data available</div>
+      <div className="w-full h-64 flex items-center justify-center bg-card rounded-[var(--radius-lg)] border">
+        <div className="text-muted-foreground text-sm">No data available</div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-96 bg-card rounded-lg p-4">
+    <div className="w-full h-96 bg-card rounded-[var(--radius-lg)] border p-4">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
