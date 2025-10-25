@@ -1,4 +1,7 @@
 import { useState, useRef } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
+import { Link, useLocation } from 'wouter';
 import { useGoldPrice } from '@/hooks/useGoldPrice';
 import { usePurchases } from '@/hooks/usePurchases';
 import PurchaseForm from '@/components/PurchaseForm';
@@ -13,14 +16,14 @@ import { PageTransition } from '@/lib/animations';
 import { useTranslation } from 'react-i18next';
 
 export default function Tracker() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { currentPrice } = useGoldPrice();
-  const { purchases, addPurchase, removePurchase, updatePurchase, calculateSummary, currency } = usePurchases();
-  const [successMessage, setSuccessMessage] = useState<string>('');
+  const { purchases, addPurchase, removePurchase, updatePurchase, calculateSummary, currency, refreshPurchases } = usePurchases();
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null); // State for the purchase being edited
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false); // State to control edit dialog visibility
+  const [location] = useLocation();
   const isMobile = useIsMobile();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -28,17 +31,25 @@ export default function Tracker() {
   const goldPrice = currentPrice?.xauPrice || 0;
   const silverPrice = currentPrice?.xagPrice || 0;
 
+  const navItems = [
+    { href: '/', label: t('prices') },
+    { href: '/tracker', label: t('tracker') },
+  ];
+
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
+  };
+
   const handleAddPurchase = (purchase: Omit<Purchase, 'createdAt'>) => {
     try {
       addPurchase(purchase);
-      setSuccessMessage(t('purchaseAddedSuccessfully', { itemName: purchase.itemName }));
-      setTimeout(() => setSuccessMessage(''), 3000);
+      toast.success(t('purchaseAddedSuccessfully', { itemName: purchase.itemName }));
       if (isMobile) {
         setIsFormVisible(false);
       }
     } catch (error) {
       console.error('Failed to add purchase:', error);
-      alert(t('failedToAddPurchase'));
+      toast.error(t('failedToAddPurchase'));
     }
   };
 
@@ -51,13 +62,12 @@ export default function Tracker() {
     if (!editingPurchase) return;
     try {
       updatePurchase(editingPurchase.id, purchase);
-      setSuccessMessage(t('purchaseUpdatedSuccessfully', { itemName: purchase.itemName }));
-      setTimeout(() => setSuccessMessage(''), 3000);
+      toast.success(t('purchaseUpdatedSuccessfully', { itemName: purchase.itemName }));
       setIsEditDialogOpen(false);
       setEditingPurchase(null);
     } catch (error) {
       console.error('Failed to update purchase:', error);
-      alert(t('failedToUpdatePurchase'));
+      toast.error(t('failedToUpdatePurchase'));
     }
   };
 
@@ -65,32 +75,33 @@ export default function Tracker() {
     if (window.confirm(t('areYouSureDeletePurchase'))) {
       try {
         removePurchase(id);
-        setSuccessMessage(t('purchaseDeletedSuccessfully'));
-        setTimeout(() => setSuccessMessage(''), 3000);
+        toast.success(t('purchaseDeletedSuccessfully'));
       } catch (error) {
         console.error('Failed to delete purchase:', error);
-        alert(t('failedToDeletePurchase'));
+        toast.error(t('failedToDeletePurchase'));
       }
     }
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const input = event.target;
+    const file = input.files?.[0];
     if (!file) return;
 
     setIsImporting(true);
     try {
       await importFromCSV(file);
-      setSuccessMessage(t('purchasesImportedSuccessfully'));
-      setTimeout(() => {
-        setSuccessMessage('');
-        window.location.reload();
-      }, 2000);
+      refreshPurchases();
+      toast.success(t('purchasesImportedSuccessfully'));
+      if (isMobile) {
+        setIsFormVisible(false);
+      }
     } catch (error) {
       console.error('Failed to import purchases:', error);
-      alert(t('failedToImportPurchases'));
+      toast.error(t('failedToImportPurchases'));
     } finally {
       setIsImporting(false);
+      input.value = '';
     }
   };
 
@@ -99,31 +110,55 @@ export default function Tracker() {
   return (
     <PageTransition className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur">
-        <div className="container py-4">
-          <div className="flex items-center space-x-4">
-            <a href="/" className="text-primary hover:text-primary/80 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-            </a>
-            <h1 className="text-2xl font-bold text-primary">{t('purchaseTracker')}</h1>
-            <nav className="hidden md:flex gap-4">
-              <a href="/" className="text-sm font-medium hover:text-primary transition-colors">{t('prices')}</a>
-              <a href="/tracker" className="text-sm font-medium hover:text-primary transition-colors">{t('tracker')}</a>
-            </nav>
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
+        <div className="container py-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/"
+              aria-label={t('prices')}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+            </Link>
+            <h1 className="text-2xl font-bold text-primary flex-1 min-w-[200px]">{t('purchaseTracker')}</h1>
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+              <nav className="hidden md:flex items-center gap-4" aria-label={t('primaryNavigation')}>
+                {navItems.map((item) => {
+                  const isActive = location === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={`text-sm font-medium transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+              <div className="w-full sm:w-auto min-w-[140px]">
+                <label htmlFor="tracker-language-select" className="sr-only">
+                  {t('language')}
+                </label>
+                <select
+                  id="tracker-language-select"
+                  value={i18n.language}
+                  onChange={(e) => handleLanguageChange(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="en">English</option>
+                  <option value="zh">中文</option>
+                </select>
+              </div>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">{t('trackYourPurchases')}</p>
+          <p className="text-sm text-muted-foreground">{t('trackYourPurchases')}</p>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container py-8">
-        {/* Success Message */}
-        {successMessage && (
-          <div className="mb-6 p-4 rounded-lg bg-green-500/20 border border-green-500/50 text-green-300">
-            {successMessage}
-          </div>
-        )}
-
+      <main className="container py-8 pb-28 md:pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Form */}
           <div className="lg:col-span-1">
@@ -195,7 +230,7 @@ export default function Tracker() {
               <PurchaseList
                 purchases={purchases}
                 onDelete={handleDeletePurchase}
-                onEdit={handleEditPurchase} // Pass the new handler
+                onEdit={handleEditPurchase}
                 currency={currency}
                 currentPrices={{
                   gold: goldPrice,
@@ -211,7 +246,10 @@ export default function Tracker() {
           title={t('editPurchase')}
           description={t('updatePurchaseDetails')}
           isOpen={isEditDialogOpen}
-          onClose={() => setIsEditDialogOpen(false)}
+          onClose={() => {
+            setIsEditDialogOpen(false);
+            setEditingPurchase(null);
+          }}
         >
           {editingPurchase && (
             <PurchaseForm

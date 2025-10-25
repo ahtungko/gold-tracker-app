@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { PageTransition } from '@/lib/animations';
-import { useGoldPrice, TimeRange } from '@/hooks/useGoldPrice';
+import { useGoldPrice } from '@/hooks/useGoldPrice';
 import { formatPrice, formatPercentage } from '@/lib/goldApi';
 import { CURRENCIES } from '@/lib/currencies';
 import { useTranslation } from 'react-i18next';
@@ -10,8 +10,8 @@ type Unit = 'oz' | 'gram';
 
 export default function Home() {
   const { t, i18n } = useTranslation();
-  const { currentPrice, loading, currency, setCurrency, timeRange, setTimeRange, refetch, hasHistoricalData } =
-    useGoldPrice();
+  const { currentPrice, loading, currency, setCurrency } = useGoldPrice();
+  const [location] = useLocation();
   const [unit, setUnit] = useState<Unit>('gram');
 
   const handleCurrencyChange = (newCurrency: string) => {
@@ -25,6 +25,11 @@ export default function Home() {
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
   };
+
+  const navItems = [
+    { href: '/', label: t('prices') },
+    { href: '/tracker', label: t('tracker') },
+  ];
 
   // Convert oz to gram (1 oz = 31.1035 grams)
   const OZ_TO_GRAM = 31.1035;
@@ -40,30 +45,47 @@ export default function Home() {
   return (
     <PageTransition className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur">
-        <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-primary">{t('goldSilverTracker')}</h1>
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
+        <div className="container py-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-bold text-primary flex-1 min-w-[200px]">{t('goldSilverTracker')}</h1>
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+              <nav className="hidden md:flex items-center gap-4" aria-label={t('primaryNavigation')}>
+                {navItems.map((item) => {
+                  const isActive = location === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={`text-sm font-medium transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+              <div className="w-full sm:w-auto min-w-[140px]">
+                <label htmlFor="home-language-select" className="sr-only">
+                  {t('language')}
+                </label>
+                <select
+                  id="home-language-select"
+                  value={i18n.language}
+                  onChange={(e) => handleLanguageChange(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="en">English</option>
+                  <option value="zh">中文</option>
+                </select>
+              </div>
             </div>
-            <nav className="hidden md:flex gap-4">
-              <a href="/" className="text-sm font-medium hover:text-primary transition-colors">{t('prices')}</a>
-              <a href="/tracker" className="text-sm font-medium hover:text-primary transition-colors">{t('tracker')}</a>
-              <select
-                value={i18n.language}
-                onChange={(e) => handleLanguageChange(e.target.value)}
-                className="px-2 py-1 rounded-md border border-border bg-background text-foreground text-sm"
-              >
-                <option value="en">English</option>
-                <option value="zh">中文</option>
-              </select>
-            </nav>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container py-8">
+      <main className="container py-8 pb-28 md:pb-12">
         {/* Controls Section */}
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           {/* Currency Selector */}
