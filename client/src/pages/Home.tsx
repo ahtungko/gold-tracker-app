@@ -5,6 +5,7 @@ import { useGoldPrice } from '@/hooks/useGoldPrice';
 import { formatPrice, formatPercentage } from '@/lib/goldApi';
 import { CURRENCIES } from '@/lib/currencies';
 import { useTranslation } from 'react-i18next';
+import { PageTransition } from '@/lib/animations';
 
 type Unit = 'oz' | 'gram';
 
