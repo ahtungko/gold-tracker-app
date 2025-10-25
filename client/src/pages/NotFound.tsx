@@ -12,9 +12,9 @@ export default function NotFound() {
   };
 
   return (
-    <PageTransition className="min-h-screen w-full flex items-center justify-center bg-background text-foreground">
-      <Card animated className="w-full max-w-lg mx-4 backdrop-blur-sm">
-        <CardContent className="py-10 text-center space-y-6">
+    <PageTransition className="flex flex-1 items-center justify-center px-4 py-12">
+      <Card animated className="w-full max-w-lg backdrop-blur-sm">
+        <CardContent className="space-y-6 py-12 text-center">
           <div className="mx-auto flex size-20 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive">
             <AlertCircle className="size-10" aria-hidden="true" />
           </div>
@@ -26,17 +26,17 @@ export default function NotFound() {
             </h2>
           </div>
 
-          <p className="text-muted-foreground text-sm leading-relaxed">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             Sorry, the page you are looking for doesn't exist. It may have been
             moved or deleted.
           </p>
 
           <div
             id="not-found-button-group"
-            className="flex flex-col sm:flex-row gap-3 justify-center"
+            className="flex flex-col justify-center gap-3 sm:flex-row"
           >
             <Button onClick={handleGoHome} className="px-6">
-              <Home className="size-4 mr-2" aria-hidden="true" />
+              <Home className="mr-2 size-4" aria-hidden="true" />
               Go Home
             </Button>
           </div>

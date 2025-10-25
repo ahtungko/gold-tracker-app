@@ -1,38 +1,78 @@
 import { Link, useLocation } from "wouter";
-import { Home as HomeIcon, TrendingUp } from "lucide-react";
+import { LayoutGroup, motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { navItems } from "@/config/navigation";
+import { usePrefersReducedMotion } from "@/lib/animations";
 import { cn } from "@/lib/utils";
-import { useTranslation } from 'react-i18next';
 
 export function BottomNavigation() {
   const [location] = useLocation();
   const { t } = useTranslation();
-
-  const navItems = [
-    { path: "/", icon: HomeIcon, label: t('prices') },
-    { path: "/tracker", icon: TrendingUp, label: t('tracker') },
-  ];
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 bg-card border-t border-border shadow-lg md:hidden pb-[calc(env(safe-area-inset-bottom,0px))]"
-      aria-label={t('primaryNavigation')}
+      className="fixed inset-x-0 bottom-0 z-[var(--z-fixed)] border-t border-border/70 bg-card/95 pb-[calc(env(safe-area-inset-bottom,0px))] backdrop-blur supports-[backdrop-filter]:backdrop-blur md:hidden shadow-[0_-8px_20px_-12px_rgba(15,23,42,0.35)]"
+      aria-label={t("primaryNavigation")}
     >
-      <div className="max-w-lg mx-auto flex items-stretch gap-2 px-4 h-14">
-        {navItems.map((item) => (
-          <Link
-            key={item.path}
-            href={item.path}
-            aria-current={location === item.path ? "page" : undefined}
-            className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-              location === item.path ? "text-primary" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <item.icon className="h-5 w-5" />
-            <span>{item.label}</span>
-          </Link>
-        ))}
-      </div>
+      <LayoutGroup id="bottom-navigation">
+        <div className="mx-auto flex h-16 max-w-lg flex-1 items-stretch gap-1 px-2 py-2">
+          {navItems.map((item) => {
+            const isActive = location === item.path;
+
+            return (
+              <Link
+                key={item.path}
+                href={item.path}
+                className={cn(
+                  "relative flex flex-1 items-stretch",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                )}
+                aria-current={isActive ? "page" : undefined}
+              >
+                <motion.div
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
+                  transition={prefersReducedMotion ? undefined : { duration: 0.12 }}
+                  className={cn(
+                    "relative flex w-full flex-col items-center justify-center gap-1.5 rounded-2xl px-2 py-2 text-xs font-medium",
+                    "transition-colors",
+                    isActive
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {isActive ? (
+                    prefersReducedMotion ? (
+                      <span className="absolute inset-x-1.5 inset-y-1 -z-10 rounded-2xl bg-primary/12" />
+                    ) : (
+                      <motion.span
+                        layoutId="bottom-navigation-active"
+                        className="absolute inset-x-1.5 inset-y-1 -z-10 rounded-2xl bg-primary/12"
+                        transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                      />
+                    )
+                  ) : null}
+
+                  <item.icon
+                    className={cn("h-5 w-5", isActive && "drop-shadow-sm")}
+                    strokeWidth={isActive ? 2.4 : 2}
+                    aria-hidden="true"
+                  />
+
+                  <span
+                    className={cn(
+                      "text-[11px] leading-none",
+                      isActive && "font-semibold",
+                    )}
+                  >
+                    {t(item.labelKey)}
+                  </span>
+                </motion.div>
+              </Link>
+            );
+          })}
+        </div>
+      </LayoutGroup>
     </nav>
   );
 }
