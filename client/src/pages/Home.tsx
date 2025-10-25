@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { PageTransition } from '@/lib/animations';
 import { useGoldPrice, TimeRange } from '@/hooks/useGoldPrice';
 import { formatPrice, formatPercentage } from '@/lib/goldApi';
 import { CURRENCIES } from '@/lib/currencies';
@@ -37,7 +38,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <PageTransition className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur">
         <div className="container py-4">
@@ -203,7 +204,7 @@ export default function Home() {
 
 
       </main>
-    </div>
+    </PageTransition>
   );
 }
 
