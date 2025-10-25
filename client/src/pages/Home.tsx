@@ -41,9 +41,9 @@ export default function Home() {
           actions={
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-2 py-1 shadow-sm">
-                <span className="hidden text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:inline">
+                {/* <span className="hidden text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:inline">
                   {t("unit")}
-                </span>
+                </span> */}
                 <Button
                   type="button"
                   variant="ghost"
