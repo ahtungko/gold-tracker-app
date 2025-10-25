@@ -136,14 +136,41 @@ export function formatPriceCeil2(
 }
 
 /**
- * Format percentage change with precise decimals
+ * Format percentage change with fixed decimal places.
  */
-export function formatPercentage(percentage: number | Decimal, decimals: number = DEFAULT_DECIMALS): string {
-  const formatted = formatDecimal(percentage, {
-    maxFractionDigits: decimals,
-    trimTrailingZeros: true,
-    mode: 'truncate',
-  });
+export function formatPercentage(
+  percentage: number | Decimal,
+  decimals: number = 2,
+): string {
+  const decimalPlaces =
+    typeof decimals === "number" && Number.isFinite(decimals) && decimals >= 0
+      ? Math.floor(decimals)
+      : 2;
 
-  return `${formatted}%`;
+  try {
+    let decimalValue: Decimal;
+
+    if (percentage instanceof Decimal) {
+      decimalValue = new Decimal(percentage);
+    } else if (typeof percentage === "number") {
+      decimalValue = new Decimal(normalizeNumber(percentage));
+    } else {
+      decimalValue = new Decimal(0);
+    }
+
+    if (!Number.isFinite(decimalValue.toNumber())) {
+      decimalValue = new Decimal(0);
+    }
+
+    const rounded = decimalValue.toDecimalPlaces(
+      decimalPlaces,
+      Decimal.ROUND_HALF_UP,
+    );
+    const formatted = rounded.toFixed(decimalPlaces);
+
+    return `${formatted}%`;
+  } catch (error) {
+    console.error("Error formatting percentage:", error, percentage);
+    return `${(0).toFixed(decimalPlaces)}%`;
+  }
 }
