@@ -17,8 +17,14 @@ i18n
         translation: zhTranslation.translation,
       },
     },
-    fallbackLng: 'en',
-    debug: true,
+    fallbackLng: "en",
+    supportedLngs: ["en", "zh"],
+    load: "languageOnly",
+    debug: import.meta.env.DEV,
+    detection: {
+      order: ["localStorage", "navigator", "htmlTag"],
+      caches: ["localStorage"],
+    },
     interpolation: {
       escapeValue: false,
     },

@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { PageContainer, SectionHeader } from "@/components/layout";
 import { useGoldPrice } from "@/hooks/useGoldPrice";
 import { formatPercentage, formatPrice } from "@/lib/goldApi";
+import { formatTime } from "@/lib/i18n-utils";
 import { CURRENCIES } from "@/lib/currencies";
 import { PageTransition } from "@/lib/animations";
 import { useTranslation } from "react-i18next";
@@ -28,8 +30,6 @@ export default function Home() {
   const getDisplayPrice = (price: number) =>
     unit === "gram" ? price / OZ_TO_GRAM : price;
 
-  const getDisplayUnit = () => (unit === "gram" ? "g" : "oz");
-
   const changeColor = (value: number) =>
     value >= 0 ? "text-emerald-400" : "text-rose-400";
 
@@ -40,40 +40,43 @@ export default function Home() {
           title={t("goldSilverTracker")}
           description={t("marketOverviewLead")}
           actions={
-            <div className="flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-2 py-1 shadow-sm">
-              <span className="hidden text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:inline">
-                {t("unit")}
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => handleUnitChange("gram")}
-                aria-pressed={unit === "gram"}
-                className={cn(
-                  "h-9 rounded-full px-4 text-sm font-medium transition-colors",
-                  unit === "gram"
-                    ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
-                )}
-              >
-                {t("gram")}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => handleUnitChange("oz")}
-                aria-pressed={unit === "oz"}
-                className={cn(
-                  "h-9 rounded-full px-4 text-sm font-medium transition-colors",
-                  unit === "oz"
-                    ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
-                )}
-              >
-                {t("ounce")}
-              </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <LanguageSwitcher />
+              <div className="flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-2 py-1 shadow-sm">
+                <span className="hidden text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:inline">
+                  {t("unit")}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleUnitChange("gram")}
+                  aria-pressed={unit === "gram"}
+                  className={cn(
+                    "h-9 rounded-full px-4 text-sm font-medium transition-colors",
+                    unit === "gram"
+                      ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                  )}
+                >
+                  {t("gram")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleUnitChange("oz")}
+                  aria-pressed={unit === "oz"}
+                  className={cn(
+                    "h-9 rounded-full px-4 text-sm font-medium transition-colors",
+                    unit === "oz"
+                      ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                  )}
+                >
+                  {t("ounce")}
+                </Button>
+              </div>
             </div>
           }
         />
@@ -94,7 +97,7 @@ export default function Home() {
             >
               {CURRENCIES.map((curr) => (
                 <option key={curr.code} value={curr.code}>
-                  {curr.code} - {curr.name}
+                  {curr.code} — {t(`currency${curr.code}`, { defaultValue: curr.name })}
                 </option>
               ))}
             </select>
@@ -105,13 +108,13 @@ export default function Home() {
               <div className="font-medium text-foreground">
                 {t("updated")}: {" "}
                 <span className="font-semibold text-primary">
-                  {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
+                  {formatTime(currentPrice.timestamp * 1000)}
                 </span>
               </div>
               <div>
                 {t("perGram")}: {" "}
                 <span className="font-semibold text-foreground">
-                  {formatPrice(currentPrice.xauPrice / OZ_TO_GRAM)}
+                  {formatPrice(currentPrice.xauPrice / OZ_TO_GRAM, currency)}
                 </span>
               </div>
             </div>
@@ -132,7 +135,7 @@ export default function Home() {
                   </p>
                   <div className="flex flex-wrap items-baseline gap-3">
                     <h2 className="text-4xl font-semibold text-primary sm:text-5xl">
-                      {formatPrice(getDisplayPrice(currentPrice.xauPrice))}
+                      {formatPrice(getDisplayPrice(currentPrice.xauPrice), currency)}
                     </h2>
                     <span
                       className={cn(
@@ -141,7 +144,7 @@ export default function Home() {
                       )}
                     >
                       {currentPrice.chgXau >= 0 ? "+" : ""}
-                      {formatPrice(getDisplayPrice(currentPrice.chgXau))}
+                      {formatPrice(getDisplayPrice(currentPrice.chgXau), currency)}
                     </span>
                     <span
                       className={cn(
@@ -154,7 +157,7 @@ export default function Home() {
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {t("per")} {getDisplayUnit()}
+                    {t("perUnit", { unit: t(unit === "gram" ? "gram" : "ounce") })}
                   </p>
                 </header>
 
@@ -164,7 +167,7 @@ export default function Home() {
                       {t("closePrice")}
                     </p>
                     <p className="text-lg font-semibold text-primary">
-                      {formatPrice(getDisplayPrice(currentPrice.xauClose))}
+                      {formatPrice(getDisplayPrice(currentPrice.xauClose), currency)}
                     </p>
                   </div>
                   <div className="space-y-1">
@@ -172,7 +175,7 @@ export default function Home() {
                       {t("updated")}
                     </p>
                     <p className="text-lg font-semibold text-primary">
-                      {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
+                      {formatTime(currentPrice.timestamp * 1000)}
                     </p>
                   </div>
                 </div>
@@ -193,7 +196,7 @@ export default function Home() {
                   </p>
                   <div className="flex flex-wrap items-baseline gap-3">
                     <h2 className="text-4xl font-semibold text-sky-300 sm:text-5xl">
-                      {formatPrice(getDisplayPrice(currentPrice.xagPrice))}
+                      {formatPrice(getDisplayPrice(currentPrice.xagPrice), currency)}
                     </h2>
                     <span
                       className={cn(
@@ -202,7 +205,7 @@ export default function Home() {
                       )}
                     >
                       {currentPrice.chgXag >= 0 ? "+" : ""}
-                      {formatPrice(getDisplayPrice(currentPrice.chgXag))}
+                      {formatPrice(getDisplayPrice(currentPrice.chgXag), currency)}
                     </span>
                     <span
                       className={cn(
@@ -215,7 +218,7 @@ export default function Home() {
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {t("per")} {getDisplayUnit()}
+                    {t("perUnit", { unit: t(unit === "gram" ? "gram" : "ounce") })}
                   </p>
                 </header>
 
@@ -225,7 +228,7 @@ export default function Home() {
                       {t("closePrice")}
                     </p>
                     <p className="text-lg font-semibold text-sky-300">
-                      {formatPrice(getDisplayPrice(currentPrice.xagClose))}
+                      {formatPrice(getDisplayPrice(currentPrice.xagClose), currency)}
                     </p>
                   </div>
                   <div className="space-y-1">
@@ -233,7 +236,7 @@ export default function Home() {
                       {t("updated")}
                     </p>
                     <p className="text-lg font-semibold text-sky-300">
-                      {new Date(currentPrice.timestamp * 1000).toLocaleTimeString()}
+                      {formatTime(currentPrice.timestamp * 1000)}
                     </p>
                   </div>
                 </div>
