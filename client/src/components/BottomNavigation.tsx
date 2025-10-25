@@ -13,14 +13,18 @@ export function BottomNavigation() {
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 bg-card border-t border-border shadow-lg md:hidden z-50">
-      <div className="flex justify-around h-14 items-center max-w-lg mx-auto">
+    <nav
+      className="fixed inset-x-0 bottom-0 z-50 bg-card border-t border-border shadow-lg md:hidden pb-[calc(env(safe-area-inset-bottom,0px))]"
+      aria-label={t('primaryNavigation')}
+    >
+      <div className="max-w-lg mx-auto flex items-stretch gap-2 px-4 h-14">
         {navItems.map((item) => (
           <Link
             key={item.path}
             href={item.path}
+            aria-current={location === item.path ? "page" : undefined}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 text-sm font-medium transition-colors",
+              "flex flex-1 flex-col items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               location === item.path ? "text-primary" : "text-muted-foreground hover:text-foreground"
             )}
           >
