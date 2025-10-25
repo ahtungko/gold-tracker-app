@@ -66,7 +66,7 @@ export default function Home() {
                   );
                 })}
               </nav>
-              <div className="w-full sm:w-auto min-w-[140px]">
+              {/* <div className="w-full sm:w-auto min-w-[140px]">
                 <label htmlFor="home-language-select" className="sr-only">
                   {t('language')}
                 </label>
@@ -79,7 +79,7 @@ export default function Home() {
                   <option value="en">English</option>
                   <option value="zh">中文</option>
                 </select>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

@@ -137,7 +137,7 @@ export default function Tracker() {
                   );
                 })}
               </nav>
-              <div className="w-full sm:w-auto min-w-[140px]">
+              {/* <div className="w-full sm:w-auto min-w-[140px]">
                 <label htmlFor="tracker-language-select" className="sr-only">
                   {t('language')}
                 </label>
@@ -150,7 +150,7 @@ export default function Tracker() {
                   <option value="en">English</option>
                   <option value="zh">中文</option>
                 </select>
-              </div>
+              </div> */}
             </div>
           </div>
           <p className="text-sm text-muted-foreground">{t('trackYourPurchases')}</p>
