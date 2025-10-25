@@ -112,7 +112,7 @@ export function formatPriceCeil2(
         testFormat.indexOf(currencySymbol) <= testFormat.indexOf("1");
 
       if (currencyFirst) {
-        return `${currencySymbol}${integerPart}${decimalPart}`;
+        return `${currencySymbol} ${integerPart}${decimalPart}`;
       }
 
       return `${integerPart}${decimalPart} ${currencySymbol}`;
