@@ -1,4 +1,5 @@
 import { getLoginUrl } from "@/const";
+import { ENABLE_AUTH } from "@/config/features";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo } from "react";
@@ -6,6 +7,18 @@ import { useCallback, useEffect, useMemo } from "react";
 type UseAuthOptions = {
   redirectOnUnauthenticated?: boolean;
   redirectPath?: string;
+};
+
+const GUEST_USER = {
+  id: 0,
+  openId: "guest",
+  name: "Guest",
+  email: "guest@example.com",
+  loginMethod: null,
+  role: "user" as const,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  lastSignedIn: new Date(),
 };
 
 export function useAuth(options?: UseAuthOptions) {
@@ -16,6 +29,7 @@ export function useAuth(options?: UseAuthOptions) {
   const meQuery = trpc.auth.me.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
+    enabled: ENABLE_AUTH,
   });
 
   const logoutMutation = trpc.auth.logout.useMutation({
@@ -25,6 +39,9 @@ export function useAuth(options?: UseAuthOptions) {
   });
 
   const logout = useCallback(async () => {
+    if (!ENABLE_AUTH) {
+      return;
+    }
     try {
       await logoutMutation.mutateAsync();
     } catch (error: unknown) {
@@ -42,15 +59,16 @@ export function useAuth(options?: UseAuthOptions) {
   }, [logoutMutation, utils]);
 
   const state = useMemo(() => {
+    const user = ENABLE_AUTH ? (meQuery.data ?? null) : GUEST_USER;
     localStorage.setItem(
       "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
+      JSON.stringify(user)
     );
     return {
-      user: meQuery.data ?? null,
-      loading: meQuery.isLoading || logoutMutation.isPending,
-      error: meQuery.error ?? logoutMutation.error ?? null,
-      isAuthenticated: Boolean(meQuery.data),
+      user,
+      loading: ENABLE_AUTH ? (meQuery.isLoading || logoutMutation.isPending) : false,
+      error: ENABLE_AUTH ? (meQuery.error ?? logoutMutation.error ?? null) : null,
+      isAuthenticated: ENABLE_AUTH ? Boolean(meQuery.data) : true,
     };
   }, [
     meQuery.data,
@@ -61,6 +79,7 @@ export function useAuth(options?: UseAuthOptions) {
   ]);
 
   useEffect(() => {
+    if (!ENABLE_AUTH) return;
     if (!redirectOnUnauthenticated) return;
     if (meQuery.isLoading || logoutMutation.isPending) return;
     if (state.user) return;
@@ -78,7 +97,7 @@ export function useAuth(options?: UseAuthOptions) {
 
   return {
     ...state,
-    refresh: () => meQuery.refetch(),
+    refresh: () => ENABLE_AUTH ? meQuery.refetch() : Promise.resolve({ data: GUEST_USER }),
     logout,
   };
 }
