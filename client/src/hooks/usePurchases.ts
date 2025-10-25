@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Purchase, PurchaseSummary } from '@/lib/types';
 import { getPurchases, savePurchase, deletePurchase, getCurrency, saveCurrency, clearCurrency, updatePurchaseInStorage } from '@/lib/storage';
+import { decimalSum, decimalMultiply, decimalDivide, decimalSubtract } from '@/lib/decimal';
 
 const GRAMS_PER_TROY_OUNCE = 31.1034768;
 
@@ -98,22 +99,25 @@ export function usePurchases() {
     }
   }, [syncCurrencyState]);
 
-  // Calculate summary statistics
+  // Calculate summary statistics with precise decimal arithmetic
   const calculateSummary = (currentGoldPrice: number, currentSilverPrice: number): PurchaseSummary => {
-    const totalWeight = purchases.reduce((sum, p) => sum + p.weight, 0);
-    const totalCost = purchases.reduce((sum, p) => sum + p.totalCost, 0);
+    // Use precise decimal arithmetic for all calculations
+    const totalWeight = decimalSum(purchases.map(p => p.weight)).toNumber();
+    const totalCost = decimalSum(purchases.map(p => p.totalCost)).toNumber();
 
-    let estimatedValue = 0;
-    purchases.forEach((p) => {
+    // Calculate estimated value with precision
+    const estimatedValues = purchases.map((p) => {
       const currentPrice = p.itemType === 'gold' ? currentGoldPrice : currentSilverPrice;
-      const pricePerGram = currentPrice / GRAMS_PER_TROY_OUNCE;
+      const pricePerGram = decimalDivide(currentPrice, GRAMS_PER_TROY_OUNCE);
 
-      if (Number.isFinite(pricePerGram)) {
-        estimatedValue += pricePerGram * p.weight;
+      if (Number.isFinite(currentPrice)) {
+        return decimalMultiply(pricePerGram, p.weight).toNumber();
       }
+      return 0;
     });
 
-    const estimatedProfit = estimatedValue - totalCost;
+    const estimatedValue = decimalSum(estimatedValues).toNumber();
+    const estimatedProfit = decimalSubtract(estimatedValue, totalCost).toNumber();
 
     return {
       totalWeight,

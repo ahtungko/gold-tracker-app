@@ -2,6 +2,7 @@ import { Purchase } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/goldApi";
 import { useTranslation } from 'react-i18next';
+import { decimalMultiply, decimalDivide, decimalSubtract, formatDecimal } from '@/lib/decimal';
 
 interface PurchaseListProps {
   purchases: Purchase[];
@@ -38,9 +39,12 @@ export default function PurchaseList({
           purchase.itemType === "gold"
             ? currentPrices.gold
             : currentPrices.silver;
-        const estimatedValue = (currentPrice / 31.1034768) * purchase.weight;
-        const profit = estimatedValue - purchase.totalCost;
-        const profitPercent = (profit / purchase.totalCost) * 100;
+        
+        // Use precise decimal arithmetic for all calculations
+        const pricePerGram = decimalDivide(currentPrice, 31.1034768);
+        const estimatedValue = decimalMultiply(pricePerGram, purchase.weight).toNumber();
+        const profit = decimalSubtract(estimatedValue, purchase.totalCost).toNumber();
+        const profitPercent = decimalMultiply(decimalDivide(profit, purchase.totalCost), 100).toNumber();
 
         return (
           <div
@@ -58,7 +62,7 @@ export default function PurchaseList({
                 </div>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">
-                    {purchase.weight.toFixed(2)}g
+                    {formatDecimal(purchase.weight, { maxFractionDigits: 8, trimTrailingZeros: true, mode: 'truncate' })}g
                   </span>{" "}
                   @ {formatPrice(purchase.pricePerGram, currency || undefined)}/g
                 </p>
@@ -104,7 +108,7 @@ export default function PurchaseList({
                       className={`font-semibold ${profit >= 0 ? "text-green-400" : "text-red-400"}`}
                     >
                       {profit >= 0 ? "+" : ""}
-                      {profitPercent.toFixed(2)}%
+                      {formatDecimal(profitPercent, { maxFractionDigits: 8, trimTrailingZeros: true, mode: 'truncate' })}%
                     </p>
                   </div>
                 </div>

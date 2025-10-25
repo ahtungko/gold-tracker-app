@@ -56,7 +56,7 @@ export default function Tracker() {
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdatePurchase = (purchase: Purchase) => {
+  const handleUpdatePurchase = (purchase: Omit<Purchase, 'createdAt'>) => {
     if (!editingPurchase) return;
     try {
       updatePurchase(editingPurchase.id, purchase);
