@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
+import { ENABLE_AUTH } from "./config/features";
 import "./index.css";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n";
@@ -13,6 +14,7 @@ import i18n from "./i18n";
 const queryClient = new QueryClient();
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
+  if (!ENABLE_AUTH) return;
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
 

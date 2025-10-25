@@ -4,6 +4,7 @@ import { Languages } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { navItems } from "@/config/navigation";
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
+import { ENABLE_AUTH } from "@/config/features";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -122,14 +123,16 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden rounded-full border-border/80 bg-background/80 text-sm font-medium shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/10 hover:text-primary md:inline-flex"
-            onClick={handleLogin}
-          >
-            {t("signIn")}
-          </Button>
+          {ENABLE_AUTH && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden rounded-full border-border/80 bg-background/80 text-sm font-medium shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/10 hover:text-primary md:inline-flex"
+              onClick={handleLogin}
+            >
+              {t("signIn")}
+            </Button>
+          )}
         </div>
       </div>
     </header>
