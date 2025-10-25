@@ -94,25 +94,67 @@ export function importFromCSV(file: File): Promise<Purchase[]> {
     reader.onload = (event) => {
       try {
         const csv = event.target?.result as string;
-        const rows = csv.split('\n').slice(1);
-        const purchases: Purchase[] = rows.map((row) => {
-          const [itemType, itemName, currency, pricePerGram, weight, purity, totalCost, purchaseDate, createdAt] = row.split(',').map(cell => cell.replace(/"/g, ''));
 
-          return {
-            id: `purchase_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            itemType: itemType as 'gold' | 'silver',
+        if (!csv) {
+          throw new Error('CSV file is empty');
+        }
+
+        const rows = csv.split('\n').slice(1);
+        const purchases: Purchase[] = [];
+
+        rows.forEach((rawRow, index) => {
+          const row = rawRow.trim();
+          if (!row) {
+            return;
+          }
+
+          const cells = row.split(',').map((cell) => cell.replace(/"/g, '').trim());
+
+          if (cells.length < 9) {
+            throw new Error('Invalid CSV format');
+          }
+
+          const [itemType, itemName, currency, pricePerGram, weight, purity, totalCost, purchaseDate, createdAt] = cells;
+          const parsedPricePerGram = parseFloat(pricePerGram);
+          const parsedWeight = parseFloat(weight);
+          const parsedTotalCost = parseFloat(totalCost);
+
+          if (
+            !itemName ||
+            !currency ||
+            !purchaseDate ||
+            Number.isNaN(parsedPricePerGram) ||
+            Number.isNaN(parsedWeight) ||
+            Number.isNaN(parsedTotalCost)
+          ) {
+            throw new Error('Invalid CSV data');
+          }
+
+          const normalizedItemType: 'gold' | 'silver' = itemType === 'silver' ? 'silver' : 'gold';
+          const normalizedPurity = (purity as Purity) || '999';
+
+          purchases.push({
+            id: `purchase_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`,
+            itemType: normalizedItemType,
             itemName,
             currency,
-            pricePerGram: parseFloat(pricePerGram),
-            weight: parseFloat(weight),
-            purity: purity as Purity,
-            totalCost: parseFloat(totalCost),
+            pricePerGram: parsedPricePerGram,
+            weight: parsedWeight,
+            purity: normalizedPurity,
+            totalCost: parsedTotalCost,
             purchaseDate,
-            createdAt,
-          };
+            createdAt: createdAt || new Date().toISOString(),
+          });
         });
 
         saveAllPurchases(purchases);
+
+        if (purchases.length > 0) {
+          saveCurrency(purchases[0].currency);
+        } else {
+          clearCurrency();
+        }
+
         resolve(purchases);
       } catch (error) {
         console.error('Error parsing CSV:', error);
