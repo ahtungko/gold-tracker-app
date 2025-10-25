@@ -108,7 +108,7 @@ export default function PurchaseList({
                       className={`font-semibold ${profit >= 0 ? "text-green-400" : "text-red-400"}`}
                     >
                       {profit >= 0 ? "+" : ""}
-                      {formatDecimal(profitPercent, { maxFractionDigits: 8, trimTrailingZeros: true, mode: 'truncate' })}%
+                      {formatDecimal(profitPercent, { maxFractionDigits: 2, trimTrailingZeros: true, mode: 'truncate' })}%
                     </p>
                   </div>
                 </div>
