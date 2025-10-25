@@ -60,64 +60,79 @@ export function formatNumber(value: number | Decimal, decimals: number = DEFAULT
 }
 
 /**
- * Format price for display with currency (up to 8 decimals, no rounding)
+ * Format price for display with currency using ceiling rounding to 2 decimals
  */
-export function formatPrice(
+export function formatPriceCeil2(
   price: number | Decimal,
   currency?: string,
-  decimals: number = DEFAULT_DECIMALS,
 ): string {
-  const normalizedPrice = normalizeNumber(typeof price === 'number' ? price : price.toNumber());
-  
-  // Format with precise decimal handling
-  const formatted = formatDecimal(normalizedPrice, {
-    maxFractionDigits: decimals,
-    trimTrailingZeros: true,
-    mode: 'truncate',
-  });
-
   const locale = getResolvedLocale();
-  
-  if (currency) {
-    // Get currency symbol from Intl
-    const parts = new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).formatToParts(0);
-    
-    const currencySymbol = parts.find(part => part.type === 'currency')?.value || currency;
-    
-    // Apply locale-aware grouping to the formatted value
-    const numParts = formatted.split('.');
-    const integerPart = parseFloat(numParts[0]).toLocaleString(locale);
-    const decimalPart = numParts.length > 1 ? `.${numParts[1]}` : '';
-    
-    // Determine currency position based on locale
-    const testFormat = new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: currency,
-    }).format(1);
-    
-    const currencyFirst = testFormat.indexOf(currencySymbol) < testFormat.indexOf('1');
-    
-    if (currencyFirst) {
-      return `${currencySymbol}${integerPart}${decimalPart}`;
+
+  try {
+    let decimalValue: Decimal;
+
+    if (price instanceof Decimal) {
+      decimalValue = new Decimal(price);
+    } else if (typeof price === "number") {
+      decimalValue = new Decimal(normalizeNumber(price));
     } else {
+      decimalValue = new Decimal(0);
+    }
+
+    if (!Number.isFinite(decimalValue.toNumber())) {
+      decimalValue = new Decimal(0);
+    }
+
+    const rounded = decimalValue.toDecimalPlaces(2, Decimal.ROUND_CEIL);
+    const formatted = rounded.toFixed(2);
+
+    const parts = formatted.split(".");
+    const integerRaw = parts[0] ?? "0";
+    const integerNumber = parseFloat(integerRaw);
+    const integerPart = Number.isNaN(integerNumber)
+      ? integerRaw
+      : integerNumber.toLocaleString(locale);
+    const decimalPart = `.${parts[1] ?? "00"}`;
+
+    if (currency) {
+      const currencyFormatter = new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+
+      const currencySymbol =
+        currencyFormatter
+          .formatToParts(0)
+          .find((part) => part.type === "currency")?.value || currency;
+
+      const testFormat = currencyFormatter.format(1);
+      const currencyFirst =
+        testFormat.indexOf(currencySymbol) <= testFormat.indexOf("1");
+
+      if (currencyFirst) {
+        return `${currencySymbol}${integerPart}${decimalPart}`;
+      }
+
       return `${integerPart}${decimalPart} ${currencySymbol}`;
     }
-  }
 
-  // Apply locale-aware grouping
-  const parts = formatted.split('.');
-  const integerPart = parseFloat(parts[0]).toLocaleString(locale);
-  
-  if (parts.length > 1) {
-    return `${integerPart}.${parts[1]}`;
+    return `${integerPart}${decimalPart}`;
+  } catch (error) {
+    console.error("Error formatting price with ceiling:", error, price);
+
+    if (currency) {
+      return new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(0);
+    }
+
+    return "0.00";
   }
-  
-  return integerPart;
 }
 
 /**

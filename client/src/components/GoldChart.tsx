@@ -7,7 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { HistoricalData } from '@/lib/goldApi';
+import { HistoricalData, formatPriceCeil2 } from '@/lib/goldApi';
 import { Spinner } from './ui/spinner';
 
 interface GoldChartProps {
@@ -69,7 +69,7 @@ export function GoldChart({ data, loading }: GoldChartProps) {
             labelStyle={{ color: 'rgba(255, 255, 255, 0.9)' }}
             formatter={(value) => {
               if (typeof value === 'number') {
-                return `$${value.toFixed(2)}`;
+                return '$' + formatPriceCeil2(value);
               }
               return value;
             }}
@@ -89,4 +89,3 @@ export function GoldChart({ data, loading }: GoldChartProps) {
     </div>
   );
 }
-

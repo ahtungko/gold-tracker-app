@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageContainer, SectionHeader } from "@/components/layout";
 import { useGoldPrice } from "@/hooks/useGoldPrice";
-import { formatPercentage, formatPrice } from "@/lib/goldApi";
+import { formatPercentage, formatPriceCeil2 } from "@/lib/goldApi";
 import { formatTime } from "@/lib/i18n-utils";
 import { CURRENCIES } from "@/lib/currencies";
 import { PageTransition } from "@/lib/animations";
@@ -113,7 +113,7 @@ export default function Home() {
               <div>
                 {t("perGram")}: {" "}
                 <span className="font-semibold text-foreground">
-                  {formatPrice(currentPrice.xauPrice / OZ_TO_GRAM, currency)}
+                  {formatPriceCeil2(currentPrice.xauPrice / OZ_TO_GRAM, currency)}
                 </span>
               </div>
             </div>
@@ -134,7 +134,7 @@ export default function Home() {
                   </p>
                   <div className="flex flex-wrap items-baseline gap-3">
                     <h2 className="text-4xl font-semibold text-primary sm:text-5xl">
-                      {formatPrice(getDisplayPrice(currentPrice.xauPrice), currency)}
+                      {formatPriceCeil2(getDisplayPrice(currentPrice.xauPrice), currency)}
                     </h2>
                     <span
                       className={cn(
@@ -143,7 +143,7 @@ export default function Home() {
                       )}
                     >
                       {currentPrice.chgXau >= 0 ? "+" : ""}
-                      {formatPrice(getDisplayPrice(currentPrice.chgXau), currency)}
+                      {formatPriceCeil2(getDisplayPrice(currentPrice.chgXau), currency)}
                     </span>
                     <span
                       className={cn(
@@ -164,7 +164,7 @@ export default function Home() {
                       {t("closePrice")}
                     </p>
                     <p className="text-lg font-semibold text-primary">
-                      {formatPrice(getDisplayPrice(currentPrice.xauClose), currency)}
+                      {formatPriceCeil2(getDisplayPrice(currentPrice.xauClose), currency)}
                     </p>
                   </div>
                   <div className="space-y-1">
@@ -193,7 +193,7 @@ export default function Home() {
                   </p>
                   <div className="flex flex-wrap items-baseline gap-3">
                     <h2 className="text-4xl font-semibold text-sky-300 sm:text-5xl">
-                      {formatPrice(getDisplayPrice(currentPrice.xagPrice), currency)}
+                      {formatPriceCeil2(getDisplayPrice(currentPrice.xagPrice), currency)}
                     </h2>
                     <span
                       className={cn(
@@ -202,7 +202,7 @@ export default function Home() {
                       )}
                     >
                       {currentPrice.chgXag >= 0 ? "+" : ""}
-                      {formatPrice(getDisplayPrice(currentPrice.chgXag), currency)}
+                      {formatPriceCeil2(getDisplayPrice(currentPrice.chgXag), currency)}
                     </span>
                     <span
                       className={cn(
@@ -223,7 +223,7 @@ export default function Home() {
                       {t("closePrice")}
                     </p>
                     <p className="text-lg font-semibold text-sky-300">
-                      {formatPrice(getDisplayPrice(currentPrice.xagClose), currency)}
+                      {formatPriceCeil2(getDisplayPrice(currentPrice.xagClose), currency)}
                     </p>
                   </div>
                   <div className="space-y-1">

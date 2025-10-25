@@ -47,9 +47,9 @@ Decimal.set({
 Enhanced formatting functions to use precise decimal handling:
 
 - **formatNumber**: Now supports Decimal types and truncates at 8 decimals
-- **formatPrice**: Updated to handle up to 8 decimal places with proper currency formatting
+- **formatPriceCeil2**: Displays price values using ceiling rounding to exactly 2 decimal places while preserving locale-aware currency symbols and grouping
 - **formatPercentage**: Uses precise decimal truncation
-- Default decimals changed from 2 to 8 across all functions
+- Non-price displays continue to support up to 8 decimals without rounding, while rendered prices are ceiling-rounded to 2 decimals
 
 ### 3. Form Input Validation (`client/src/components/PurchaseForm.tsx`)
 

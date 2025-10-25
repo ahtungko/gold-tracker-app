@@ -1,4 +1,4 @@
-import { GoldPrice, formatPrice } from "@/lib/goldApi";
+import { GoldPrice, formatPriceCeil2, formatPercentage } from "@/lib/goldApi";
 import { useTranslation } from 'react-i18next';
 import { decimalDivide } from '@/lib/decimal';
 
@@ -25,10 +25,10 @@ export function PriceStats({ currentPrice }: PriceStatsProps) {
           className={`text-lg font-semibold ${currentPrice.chgXau >= 0 ? "text-green-400" : "text-red-400"}`}
         >
           {currentPrice.chgXau >= 0 ? "+" : ""}
-          {formatPrice(currentPrice.chgXau)}
+          {formatPriceCeil2(currentPrice.chgXau)}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          {formatPrice(currentPrice.pcXau)}%
+          {formatPercentage(currentPrice.pcXau)}
         </p>
       </div>
 
@@ -37,7 +37,7 @@ export function PriceStats({ currentPrice }: PriceStatsProps) {
           {t('closePrice')}
         </p>
         <p className="text-lg font-semibold text-primary">
-          {formatPrice(currentPrice.xauClose)}
+          {formatPriceCeil2(currentPrice.xauClose)}
         </p>
         <p className="text-xs text-muted-foreground mt-1">{t('previous')}</p>
       </div>
@@ -47,7 +47,7 @@ export function PriceStats({ currentPrice }: PriceStatsProps) {
           {t('perGram')}
         </p>
         <p className="text-lg font-semibold text-primary">
-          {formatPrice(perGram)}
+          {formatPriceCeil2(perGram)}
         </p>
         <p className="text-xs text-muted-foreground mt-1">{t('oneGram')}</p>
       </div>
@@ -59,13 +59,13 @@ export function PriceStats({ currentPrice }: PriceStatsProps) {
         <p
           className={`text-lg font-semibold ${currentPrice.chgXag >= 0 ? "text-green-400" : "text-red-400"}`}
         >
-          {formatPrice(currentPrice.xagPrice)}
+          {formatPriceCeil2(currentPrice.xagPrice)}
         </p>
         <p
           className={`text-xs ${currentPrice.pcXag >= 0 ? "text-green-400" : "text-red-400"}`}
         >
           {currentPrice.pcXag >= 0 ? "+" : ""}
-          {formatPrice(currentPrice.pcXag)}%
+          {formatPercentage(currentPrice.pcXag)}
         </p>
       </div>
     </div>
