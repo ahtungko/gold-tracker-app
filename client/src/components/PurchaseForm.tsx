@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Purchase, Purity } from '@/lib/types';
 import { CURRENCIES } from '@/lib/currencies';
 import { useTranslation } from 'react-i18next';
+import { validateDecimalInput, decimalMultiply, formatDecimal } from '@/lib/decimal';
 
 interface PurchaseFormProps {
   onSubmit: (purchase: Omit<Purchase, 'createdAt'>) => void;
@@ -64,11 +65,15 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
     const price = parseFloat(formData.pricePerGram);
     if (!formData.pricePerGram || isNaN(price) || price <= 0) {
       newErrors.pricePerGram = t('pricePerGramPositive');
+    } else if (!validateDecimalInput(formData.pricePerGram, 8)) {
+      newErrors.pricePerGram = t('pricePerGramMaxDecimals', { max: 8, defaultValue: 'Price per gram can have at most 8 decimal places' });
     }
 
     const weight = parseFloat(formData.weight);
     if (!formData.weight || isNaN(weight) || weight <= 0) {
       newErrors.weight = t('weightPositive');
+    } else if (!validateDecimalInput(formData.weight, 8)) {
+      newErrors.weight = t('weightMaxDecimals', { max: 8, defaultValue: 'Weight can have at most 8 decimal places' });
     }
 
     if (!formData.purchaseDate) {
@@ -90,8 +95,11 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
       return;
     }
 
+    // Use precise decimal multiplication for total cost
+    const totalCostDecimal = decimalMultiply(formData.pricePerGram, formData.weight);
+    
     const purchase: Omit<Purchase, 'createdAt'> = {
-      ...(initialPurchase && { id: initialPurchase.id }), // Include ID if editing
+      id: initialPurchase?.id || '', // Include ID if editing, empty string otherwise
       itemType: 'gold',
       itemName: formData.itemName.trim(),
       currency: formData.currency,
@@ -99,7 +107,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
       weight: parseFloat(formData.weight),
       purity: formData.purity,
       purchaseDate: formData.purchaseDate,
-      totalCost: parseFloat(formData.pricePerGram) * parseFloat(formData.weight),
+      totalCost: totalCostDecimal.toNumber(),
     };
 
     onSubmit(purchase);
@@ -240,7 +248,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
       {formData.pricePerGram && formData.weight && (
         <div className="bg-primary/10 p-3 rounded-md">
           <p className="text-sm">
-            {t('totalCost')}: <span className="font-semibold">{(parseFloat(formData.pricePerGram) * parseFloat(formData.weight)).toFixed(2)} {formData.currency}</span>
+            {t('totalCost')}: <span className="font-semibold">{formatDecimal(decimalMultiply(formData.pricePerGram, formData.weight), { maxFractionDigits: 8, trimTrailingZeros: true, mode: 'truncate' })} {formData.currency}</span>
           </p>
         </div>
       )}

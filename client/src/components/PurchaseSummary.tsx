@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/goldApi";
 import { exportToCSV, generateExportFilename } from "@/lib/storage";
 import { useTranslation } from 'react-i18next';
+import { decimalSum, decimalMultiply, decimalDivide, decimalSubtract, formatDecimal } from '@/lib/decimal';
 
 interface PurchaseSummaryProps {
   purchases: Purchase[];
@@ -64,7 +65,7 @@ export default function PurchaseSummaryComponent({
             <div>
               <p className="text-muted-foreground text-xs">{t('weight')}</p>
               <p className="font-semibold">
-                {goldSummary.totalWeight.toFixed(2)}g
+                {formatDecimal(goldSummary.totalWeight, { maxFractionDigits: 8, trimTrailingZeros: true, mode: 'truncate' })}g
               </p>
             </div>
             <div>
@@ -111,7 +112,7 @@ export default function PurchaseSummaryComponent({
             <div>
               <p className="text-muted-foreground text-xs">{t('weight')}</p>
               <p className="font-semibold">
-                {silverSummary.totalWeight.toFixed(2)}g
+                {formatDecimal(silverSummary.totalWeight, { maxFractionDigits: 8, trimTrailingZeros: true, mode: 'truncate' })}g
               </p>
             </div>
             <div>
@@ -154,16 +155,22 @@ export default function PurchaseSummaryComponent({
 }
 
 /**
- * Calculate summary statistics for a set of purchases
+ * Calculate summary statistics for a set of purchases with precise decimal arithmetic
  */
 function calculateSummary(
   purchases: Purchase[],
   currentPrice: number
 ): PurchaseSummary {
-  const totalWeight = purchases.reduce((sum, p) => sum + p.weight, 0);
-  const totalCost = purchases.reduce((sum, p) => sum + p.totalCost, 0);
-  const estimatedValue = totalWeight * (currentPrice / 31.1034768);
-  const estimatedProfit = estimatedValue - totalCost;
+  // Use precise decimal arithmetic for all calculations
+  const totalWeight = decimalSum(purchases.map(p => p.weight)).toNumber();
+  const totalCost = decimalSum(purchases.map(p => p.totalCost)).toNumber();
+  
+  // Calculate estimated value: totalWeight * (currentPrice / 31.1034768)
+  const pricePerGram = decimalDivide(currentPrice, 31.1034768);
+  const estimatedValue = decimalMultiply(totalWeight, pricePerGram).toNumber();
+  
+  // Calculate profit with precision
+  const estimatedProfit = decimalSubtract(estimatedValue, totalCost).toNumber();
 
   return {
     totalWeight,

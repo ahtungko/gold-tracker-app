@@ -1,5 +1,6 @@
 import { GoldPrice, formatPrice } from "@/lib/goldApi";
 import { useTranslation } from 'react-i18next';
+import { decimalDivide } from '@/lib/decimal';
 
 interface PriceStatsProps {
   currentPrice: GoldPrice | null;
@@ -12,7 +13,7 @@ export function PriceStats({ currentPrice }: PriceStatsProps) {
     return null;
   }
 
-  const perGram = currentPrice.xauPrice / 31.1034768;
+  const perGram = decimalDivide(currentPrice.xauPrice, 31.1034768).toNumber();
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
