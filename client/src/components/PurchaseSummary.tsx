@@ -1,6 +1,6 @@
 import { Purchase, PurchaseSummary } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/goldApi";
+import { formatPriceCeil2 } from "@/lib/goldApi";
 import { exportToCSV, generateExportFilename } from "@/lib/storage";
 import { useTranslation } from 'react-i18next';
 import { decimalSum, decimalMultiply, decimalDivide, decimalSubtract, formatDecimal } from '@/lib/decimal';
@@ -71,13 +71,13 @@ export default function PurchaseSummaryComponent({
             <div>
               <p className="text-muted-foreground text-xs">{t('cost')}</p>
               <p className="font-semibold">
-                {formatPrice(goldSummary.totalCost, currency || undefined)}
+                {formatPriceCeil2(goldSummary.totalCost, currency || undefined)}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground text-xs">{t('estimatedValue')}</p>
               <p className="font-semibold text-blue-400">
-                {formatPrice(goldSummary.estimatedValue, currency || undefined)}
+                {formatPriceCeil2(goldSummary.estimatedValue, currency || undefined)}
               </p>
             </div>
             <div>
@@ -86,7 +86,7 @@ export default function PurchaseSummaryComponent({
                 className={`font-semibold ${goldSummary.estimatedProfit >= 0 ? "text-green-400" : "text-red-400"}`}
               >
                 {goldSummary.estimatedProfit >= 0 ? "+" : ""}
-                {formatPrice(goldSummary.estimatedProfit, currency || undefined)}
+                {formatPriceCeil2(goldSummary.estimatedProfit, currency || undefined)}
               </p>
             </div>
           </div>
@@ -118,13 +118,13 @@ export default function PurchaseSummaryComponent({
             <div>
               <p className="text-muted-foreground text-xs">{t('cost')}</p>
               <p className="font-semibold">
-                {formatPrice(silverSummary.totalCost, currency || undefined)}
+                {formatPriceCeil2(silverSummary.totalCost, currency || undefined)}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground text-xs">{t('estimatedValue')}</p>
               <p className="font-semibold text-blue-400">
-                {formatPrice(silverSummary.estimatedValue, currency || undefined)}
+                {formatPriceCeil2(silverSummary.estimatedValue, currency || undefined)}
               </p>
             </div>
             <div>
@@ -133,7 +133,7 @@ export default function PurchaseSummaryComponent({
                 className={`font-semibold ${silverSummary.estimatedProfit >= 0 ? "text-green-400" : "text-red-400"}`}
               >
                 {silverSummary.estimatedProfit >= 0 ? "+" : ""}
-                {formatPrice(silverSummary.estimatedProfit, currency || undefined)}
+                {formatPriceCeil2(silverSummary.estimatedProfit, currency || undefined)}
               </p>
             </div>
           </div>
