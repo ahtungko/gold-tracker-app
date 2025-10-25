@@ -15,7 +15,9 @@ export function PageContainer({
     <div
       className={cn(
         "container w-full max-w-6xl pt-8 md:pt-12",
-        withBottomGutter ? "pb-28 md:pb-16" : "pb-8 md:pb-12",
+        withBottomGutter
+          ? "pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))]"
+          : "pb-[calc(3rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))]",
         className,
       )}
     >

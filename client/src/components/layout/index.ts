@@ -1,4 +1,4 @@
 export { AppShell } from "./AppShell";
-export { Header } from "./Header";
+export { AppActionsMenu } from "./AppActionsMenu";
 export { PageContainer } from "./PageContainer";
 export { SectionHeader } from "./SectionHeader";
