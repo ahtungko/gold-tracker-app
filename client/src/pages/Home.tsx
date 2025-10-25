@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { PageContainer, SectionHeader } from "@/components/layout";
 import { useGoldPrice } from "@/hooks/useGoldPrice";
@@ -41,7 +40,6 @@ export default function Home() {
           description={t("marketOverviewLead")}
           actions={
             <div className="flex flex-wrap items-center gap-2">
-              <LanguageSwitcher />
               <div className="flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-2 py-1 shadow-sm">
                 <span className="hidden text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:inline">
                   {t("unit")}

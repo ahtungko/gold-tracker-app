@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from "react";
 import { BottomNavigation } from "../BottomNavigation";
+import { LanguageSwitcher } from "../LanguageSwitcher";
 import { cn } from "@/lib/utils";
 
 export function AppShell({ children }: PropsWithChildren) {
@@ -12,6 +13,9 @@ export function AppShell({ children }: PropsWithChildren) {
       >
         {children}
       </main>
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] z-[1215] flex justify-center px-4 print:hidden">
+        <LanguageSwitcher className="pointer-events-auto" />
+      </div>
       <BottomNavigation />
     </div>
   );

@@ -1,63 +1,63 @@
 import { Button } from "@/components/ui/button";
+import { useLanguagePreference, type SupportedLanguage } from "@/hooks/useLanguagePreference";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
-const LANGUAGES = [
-  { code: "en", labelKey: "languageEnglishShort", ariaKey: "languageEnglish" },
-  { code: "zh", labelKey: "languageChineseShort", ariaKey: "languageChinese" },
-] as const;
+const LANGUAGE_OPTIONS: Array<{
+  code: SupportedLanguage;
+  displayLabel: string;
+  nameKey: string;
+}> = [
+  { code: "en", displayLabel: "EN", nameKey: "languageEnglishName" },
+  { code: "zh", displayLabel: "中文", nameKey: "languageChineseName" },
+];
 
 interface LanguageSwitcherProps {
   className?: string;
 }
 
 export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
-  const { t, i18n } = useTranslation();
-  const activeLanguage = (i18n.resolvedLanguage || i18n.language || "en").split("-")[0];
-
-  const handleLanguageChange = (languageCode: string) => {
-    if (languageCode === activeLanguage) {
-      return;
-    }
-
-    void i18n.changeLanguage(languageCode);
-  };
+  const { t } = useTranslation();
+  const { activeLanguage, changeLanguage } = useLanguagePreference();
 
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-2 py-1 shadow-sm",
+        "inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/95 p-1 shadow-lg backdrop-blur-sm",
+        "focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/60 focus-within:ring-offset-2 focus-within:ring-offset-background",
         className,
       )}
       role="group"
       aria-label={t("language")}
     >
-      <span className="hidden text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:inline">
-        {t("language")}
-      </span>
-      {LANGUAGES.map((language) => {
-        const isActive = activeLanguage === language.code;
+      {LANGUAGE_OPTIONS.map((option) => {
+        const isActive = activeLanguage === option.code;
+        const languageName = t(option.nameKey);
+        const ariaLabel = isActive
+          ? t("languageCurrent", { language: languageName })
+          : t("languageSwitchTo", { language: languageName });
 
         return (
           <Button
-            key={language.code}
+            key={option.code}
             type="button"
             variant="ghost"
             size="sm"
-            data-lang={language.code}
             aria-pressed={isActive}
-            aria-label={t("languageSwitchAria", {
-              language: t(language.ariaKey),
-            })}
-            onClick={() => handleLanguageChange(language.code)}
+            aria-label={ariaLabel}
+            onClick={() => {
+              void changeLanguage(option.code);
+            }}
             className={cn(
-              "h-9 rounded-full px-4 text-sm font-medium transition-colors",
+              "h-9 min-w-[3.25rem] rounded-full px-3 text-xs font-semibold uppercase",
+              option.code === "en" ? "tracking-[0.28em]" : "tracking-normal",
+              "transition-colors",
               isActive
                 ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
                 : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
             )}
           >
-            {t(language.labelKey)}
+            <span aria-hidden="true">{option.displayLabel}</span>
           </Button>
         );
       })}
