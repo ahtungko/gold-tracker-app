@@ -11,6 +11,8 @@ A real-time gold price tracking application built with React, Tailwind CSS, and 
 - **Dark Theme**: Professional dark-themed UI optimized for readability
 - **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 - **Auto-refresh**: Automatically updates price data every 30 seconds
+- **Guest Mode**: Run the application without authentication.
+- **High Precision**: Supports up to 8 decimal places for prices and weights.
 
 ## Tech Stack
 
@@ -66,6 +68,21 @@ Preview the production build:
 ```bash
 pnpm preview
 ```
+
+## Guest Mode
+
+This application supports a guest mode that allows running the application without authentication.
+
+The feature is controlled by the `VITE_ENABLE_AUTH` environment variable:
+
+- `VITE_ENABLE_AUTH=false` - Guest mode (auth disabled)
+- `VITE_ENABLE_AUTH=true` - Normal mode (auth enabled)
+
+When guest mode is enabled, a mock guest user is used, and all authentication UI and features are disabled.
+
+## Precision Implementation
+
+The application handles numeric values with up to 8 decimal places of precision for prices and weights, using `decimal.js-light` to avoid floating-point errors.
 
 ## Deployment to Vercel
 
@@ -222,7 +239,7 @@ const interval = setInterval(fetchData, 30000);
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
 
 ## License
 
@@ -248,4 +265,3 @@ For issues or questions:
 ---
 
 **Made with ❤️ for gold enthusiasts and traders**
-

@@ -55,6 +55,10 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    sourcemap: false, // Ensure sourcemaps are not generated for production
+    // Consider using dynamic imports (lazy loading) for routes and components
+    // to further reduce initial JavaScript bundle size.
+    // Example: const MyComponent = lazy(() => import('./MyComponent'));
   },
   server: {
     host: true,
