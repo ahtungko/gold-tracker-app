@@ -17,7 +17,10 @@ export default function Home() {
   const { t } = useTranslation();
   const { currentPrice, loading, currency, setCurrency } = useGoldPrice();
   const [unit, setUnit] = useState<Unit>("gram");
-  const unitLabel = t("price.unitLabel");
+  const unitLabel = t(
+    unit === "gram" ? "price.unitLabelGram" : "price.unitLabelOunce",
+    { defaultValue: unit === "gram" ? "g" : "oz" },
+  );
 
   const handleCurrencyChange = (newCurrency: string) => {
     setCurrency(newCurrency);

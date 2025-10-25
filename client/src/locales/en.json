@@ -21,7 +21,9 @@
     "loadingPriceData": "Loading price data...",
     "silverPriceXAG": "Silver Price (XAG)",
     "price": {
-      "unitLabel": "g/oz"
+      "unitLabel": "g/oz",
+      "unitLabelGram": "g",
+      "unitLabelOunce": "oz"
     },
     "purchaseTracker": "Purchase Tracker",
     "trackYourPurchases": "Track your gold and silver purchases",
