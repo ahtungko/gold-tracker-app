@@ -73,6 +73,9 @@ export function BottomNavigation() {
             );
           })}
         </ul>
+        <div className="absolute bottom-1 right-2 text-xs text-muted-foreground">
+          v{__APP_VERSION__}
+        </div>
       </LayoutGroup>
     </nav>
   );
