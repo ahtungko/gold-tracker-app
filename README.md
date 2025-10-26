@@ -84,50 +84,6 @@ When guest mode is enabled, a mock guest user is used, and all authentication UI
 
 The application handles numeric values with up to 8 decimal places of precision for prices and weights, using `decimal.js-light` to avoid floating-point errors.
 
-## Deployment to Vercel
-
-### Option 1: Deploy via Vercel CLI
-
-1. Install Vercel CLI:
-```bash
-npm i -g vercel
-```
-
-2. Deploy:
-```bash
-vercel
-```
-
-3. Follow the prompts and select the project settings.
-
-### Option 2: Deploy via GitHub (Recommended)
-
-1. Push your code to GitHub:
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/yourusername/gold-tracker-app.git
-git push -u origin main
-```
-
-2. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-
-3. Click "Add New..." → "Project"
-
-4. Import your GitHub repository
-
-5. Configure project settings:
-   - **Framework Preset**: Vite
-   - **Build Command**: `pnpm build`
-   - **Output Directory**: `dist`
-   - **Install Command**: `pnpm install`
-
-6. Click "Deploy" - no environment variables needed!
-
-**Note:** The application uses the free GoldPrice.org API which requires no authentication.
-
 ## API Integration
 
 ### GoldPrice.org
@@ -244,13 +200,6 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for mor
 ## License
 
 MIT License - see LICENSE file for details
-
-## Support
-
-For issues or questions:
-1. Check the [GoldAPI.io documentation](https://www.goldapi.io/)
-2. Review the [Recharts documentation](https://recharts.org/)
-3. Check the [Vercel deployment guide](https://vercel.com/docs)
 
 ## Roadmap
 
