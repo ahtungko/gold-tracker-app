@@ -178,6 +178,60 @@
   }
 }
 
+@layer utilities {
+  .motion-base {
+    opacity: 0;
+    --motion-translate-y: 0px;
+    --motion-scale: 1;
+    --motion-duration: 220ms;
+    --motion-delay: 0ms;
+    --motion-easing: cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translate3d(0, var(--motion-translate-y), 0) scale(var(--motion-scale));
+    transition-property: opacity, transform;
+    transition-duration: var(--motion-duration);
+    transition-timing-function: var(--motion-easing);
+    transition-delay: var(--motion-delay);
+    will-change: opacity, transform;
+    backface-visibility: hidden;
+  }
+
+  .motion-base[data-motion="enter"] {
+    opacity: 1;
+    --motion-translate-y: 0px;
+    --motion-scale: 1;
+  }
+
+  .motion-fade {
+  }
+
+  .motion-slide-up {
+    --motion-translate-y: 0.75rem;
+  }
+
+  .motion-slide-down {
+    --motion-translate-y: -0.75rem;
+  }
+
+  .motion-scale {
+    --motion-scale: 0.96;
+  }
+
+  .motion-card-reveal {
+    --motion-translate-y: 1rem;
+    --motion-scale: 0.97;
+    --motion-duration: 260ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-base {
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
 /* Custom scrollbar for dark mode */
 .dark ::-webkit-scrollbar {
   width: 12px;

@@ -98,24 +98,17 @@ export function formatPriceCeil2(
       const currencyFormatter = new Intl.NumberFormat(locale, {
         style: "currency",
         currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
       });
 
-      const currencySymbol =
-        currencyFormatter
-          .formatToParts(0)
-          .find((part) => part.type === "currency")?.value || currency;
+      const roundedNumber = Number(rounded.toFixed(2));
 
-      const testFormat = currencyFormatter.format(1);
-      const currencyFirst =
-        testFormat.indexOf(currencySymbol) <= testFormat.indexOf("1");
-
-      if (currencyFirst) {
-        return `${currencySymbol} ${integerPart}${decimalPart}`;
+      if (Number.isNaN(roundedNumber)) {
+        return currencyFormatter.format(0);
       }
 
-      return `${integerPart}${decimalPart} ${currencySymbol}`;
+      return currencyFormatter.format(roundedNumber);
     }
 
     return `${integerPart}${decimalPart}`;

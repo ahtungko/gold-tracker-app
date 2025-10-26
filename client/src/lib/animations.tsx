@@ -1,31 +1,49 @@
 /**
- * Animation Utilities with Framer Motion
+ * Animation Utilities
  *
- * Provides reusable animation primitives and hooks that respect prefers-reduced-motion.
- * All animations are designed to be performant and accessible.
+ * Provides lightweight animation helpers that respect prefers-reduced-motion.
+ * Animations rely on CSS transitions so they add no runtime dependencies.
  */
 
-import { motion, type MotionProps, type Variants } from "framer-motion";
-import { type ComponentProps, useEffect, useState } from "react";
-import { duration, easing } from "./design-tokens";
+import {
+  type ComponentPropsWithoutRef,
+  type CSSProperties,
+  useEffect,
+  useState,
+} from "react";
+
+import { cn } from "./utils";
+
+const REDUCE_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function getPrefersReducedMotion(): boolean {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false;
+  }
+
+  return window.matchMedia(REDUCE_MOTION_QUERY).matches;
+}
 
 /**
  * Hook to detect if the user prefers reduced motion.
  */
 export function usePrefersReducedMotion(): boolean {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(
+    getPrefersReducedMotion,
+  );
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
       return;
     }
 
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
+    const mediaQuery = window.matchMedia(REDUCE_MOTION_QUERY);
 
-    const handleChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches);
+    const handleChange = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
     };
+
+    handleChange();
 
     if (typeof mediaQuery.addEventListener === "function") {
       mediaQuery.addEventListener("change", handleChange);
@@ -39,113 +57,28 @@ export function usePrefersReducedMotion(): boolean {
   return prefersReducedMotion;
 }
 
-/**
- * Animation variants for common patterns.
- */
-export const fadeVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-  exit: { opacity: 0 },
-};
+export type AnimationVariant = "fade" | "slideUp" | "slideDown" | "scale" | "cardReveal";
 
-export const slideUpVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 20 },
-};
-
-export const slideDownVariants: Variants = {
-  hidden: { opacity: 0, y: -20 },
-  visible: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
-};
-
-export const scaleVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1 },
-  exit: { opacity: 0, scale: 0.95 },
-};
-
-export const cardRevealVariants: Variants = {
-  hidden: { opacity: 0, y: 30, scale: 0.98 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: duration.slow / 1000,
-      ease: easing.easeOut as any,
-    },
-  },
-  exit: {
-    opacity: 0,
-    y: 10,
-    scale: 0.98,
-    transition: {
-      duration: duration.fast / 1000,
-      ease: easing.easeIn as any,
-    },
-  },
-};
-
-export const staggerContainerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.1,
-    },
-  },
-};
-
-export const staggerItemVariants: Variants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: duration.normal / 1000,
-      ease: easing.easeOut as any,
-    },
-  },
-};
-
-/**
- * Page transition variants.
- */
-export const pageTransitionVariants: Variants = {
-  initial: { opacity: 0, y: 10 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: duration.normal / 1000,
-      ease: easing.easeOut as any,
-    },
-  },
-  exit: {
-    opacity: 0,
-    transition: {
-      duration: duration.fast / 1000,
-      ease: easing.easeIn as any,
-    },
-  },
-};
-
-interface AnimatedProps
-  extends Omit<ComponentProps<typeof motion.div>, "variants"> {
-  variant?: "fade" | "slideUp" | "slideDown" | "scale" | "cardReveal";
+interface AnimatedProps extends ComponentPropsWithoutRef<"div"> {
+  variant?: AnimationVariant;
   delay?: number;
   disableAnimation?: boolean;
 }
 
-const variantMap: Record<NonNullable<AnimatedProps["variant"]>, Variants> = {
-  fade: fadeVariants,
-  slideUp: slideUpVariants,
-  slideDown: slideDownVariants,
-  scale: scaleVariants,
-  cardReveal: cardRevealVariants,
+type AnimatedCardProps = Omit<AnimatedProps, "variant">;
+
+type MotionState = "idle" | "enter";
+
+type CSSCustomProperties = CSSProperties & {
+  "--motion-delay"?: string;
+};
+
+const variantClassMap: Record<AnimationVariant, string> = {
+  fade: "motion-base motion-fade",
+  slideUp: "motion-base motion-slide-up",
+  slideDown: "motion-base motion-slide-down",
+  scale: "motion-base motion-scale",
+  cardReveal: "motion-base motion-card-reveal",
 };
 
 /**
@@ -155,132 +88,63 @@ export function Animated({
   variant = "fade",
   delay = 0,
   disableAnimation = false,
+  className,
+  style,
   children,
   ...props
 }: AnimatedProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
-  const shouldAnimate = !prefersReducedMotion && !disableAnimation;
+  const [isMounted, setIsMounted] = useState(false);
+  const [motionState, setMotionState] = useState<MotionState>("enter");
 
-  if (!shouldAnimate) {
-    return <motion.div {...props}>{children}</motion.div>;
-  }
-}
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-/**
- * Card with reveal animation.
- */
-export function AnimatedCard({
-  delay = 0,
-  disableAnimation = false,
-  children,
-  ...props
-}: AnimatedProps) {
+  const shouldAnimate = isMounted && !prefersReducedMotion && !disableAnimation;
+
+  useEffect(() => {
+    if (!shouldAnimate) {
+      setMotionState("enter");
+      return;
+    }
+
+    setMotionState("idle");
+
+    const frame = requestAnimationFrame(() => {
+      setMotionState("enter");
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [shouldAnimate, variant, delay]);
+
+  const baseStyle = style as CSSCustomProperties | undefined;
+  const finalStyle = shouldAnimate && delay > 0
+    ? { ...(baseStyle ?? {}), "--motion-delay": `${delay}ms` }
+    : baseStyle;
+
   return (
-    <Animated
-      variant="cardReveal"
-      delay={delay}
-      disableAnimation={disableAnimation}
+    <div
+      data-motion={motionState}
+      className={cn(shouldAnimate ? variantClassMap[variant] : undefined, className)}
+      style={finalStyle}
       {...props}
     >
       {children}
-    </Animated>
-  );
-}
-
-/**
- * Stagger container for animating lists.
- */
-export function StaggerContainer({
-  disableAnimation = false,
-  children,
-  ...props
-}: Omit<AnimatedProps, "variant">) {
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const shouldAnimate = !prefersReducedMotion && !disableAnimation;
-
-  if (!shouldAnimate) {
-    return <motion.div {...props}>{children}</motion.div>;
-  }
-
-  return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={staggerContainerVariants}
-      {...props}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-/**
- * Item in a stagger container.
- */
-export function StaggerItem({
-  disableAnimation = false,
-  children,
-  ...props
-}: Omit<AnimatedProps, "variant">) {
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const shouldAnimate = !prefersReducedMotion && !disableAnimation;
-
-  if (!shouldAnimate) {
-    return <motion.div {...props}>{children}</motion.div>;
-  }
-
-  return (
-    <motion.div variants={staggerItemVariants} {...props}>
-      {children}
-    </motion.div>
+    </div>
   );
 }
 
 /**
  * Page transition wrapper.
  */
-export function PageTransition({
-  children,
-  ...props
-}: Omit<ComponentProps<typeof motion.div>, "variants">) {
-  const prefersReducedMotion = usePrefersReducedMotion();
-
-  if (prefersReducedMotion) {
-    return <motion.div {...props}>{children}</motion.div>;
-  }
-
-  return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={pageTransitionVariants}
-      {...props}
-    >
-      {children}
-    </motion.div>
-  );
+export function PageTransition({ variant = "slideUp", ...props }: AnimatedProps) {
+  return <Animated variant={variant} {...props} />;
 }
 
 /**
- * Interactive hover/press scale animation.
+ * Card with reveal animation.
  */
-export const interactiveScale: MotionProps = {
-  whileHover: { scale: 1.02 },
-  whileTap: { scale: 0.98 },
-  transition: {
-    duration: duration.fast / 1000,
-    ease: easing.easeOut as any,
-  },
-};
-
-/**
- * Subtle hover lift animation.
- */
-export const hoverLift: MotionProps = {
-  whileHover: { y: -2 },
-  transition: {
-    duration: duration.fast / 1000,
-    ease: easing.easeOut as any,
-  },
-};
+export function AnimatedCard(props: AnimatedCardProps) {
+  return <Animated variant="cardReveal" {...props} />;
+}

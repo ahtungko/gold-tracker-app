@@ -31,7 +31,7 @@ function Card({
         delay={animationDelay}
         disableAnimation={disableAnimation}
         className={classes}
-        {...(props as any)}
+        {...props}
       />
     );
   }
