@@ -162,25 +162,8 @@ export function Animated({
   const shouldAnimate = !prefersReducedMotion && !disableAnimation;
 
   if (!shouldAnimate) {
-    return <div {...props}>{children}</div>;
+    return <motion.div {...props}>{children}</motion.div>;
   }
-
-  return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      variants={variantMap[variant]}
-      transition={{
-        delay,
-        duration: duration.normal / 1000,
-        ease: easing.easeOut as any,
-      }}
-      {...props}
-    >
-      {children}
-    </motion.div>
-  );
 }
 
 /**
@@ -216,7 +199,7 @@ export function StaggerContainer({
   const shouldAnimate = !prefersReducedMotion && !disableAnimation;
 
   if (!shouldAnimate) {
-    return <div {...props}>{children}</div>;
+    return <motion.div {...props}>{children}</motion.div>;
   }
 
   return (
@@ -243,7 +226,7 @@ export function StaggerItem({
   const shouldAnimate = !prefersReducedMotion && !disableAnimation;
 
   if (!shouldAnimate) {
-    return <div {...props}>{children}</div>;
+    return <motion.div {...props}>{children}</motion.div>;
   }
 
   return (
@@ -263,7 +246,7 @@ export function PageTransition({
   const prefersReducedMotion = usePrefersReducedMotion();
 
   if (prefersReducedMotion) {
-    return <div {...props}>{children}</div>;
+    return <motion.div {...props}>{children}</motion.div>;
   }
 
   return (

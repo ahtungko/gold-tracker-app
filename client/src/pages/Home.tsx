@@ -83,49 +83,45 @@ export default function Home() {
           }
         />
 
-        <div className="rounded-2xl border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur-sm sm:flex sm:items-center sm:justify-between sm:gap-6">
-          <div className="flex w-full flex-col gap-2 sm:max-w-sm">
-            <label
-              htmlFor="currency-select"
-              className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-            >
-              {t("currency")}
-            </label>
-            <select
-              id="currency-select"
-              value={currency}
-              onChange={(event) => handleCurrencyChange(event.target.value)}
-              className="h-11 rounded-xl border border-border/60 bg-background/90 px-3 text-sm font-medium text-foreground shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/60"
-            >
-              {CURRENCIES.map((curr) => (
-                <option key={curr.code} value={curr.code}>
-                  {curr.code} — {t(`currency${curr.code}`, { defaultValue: curr.name })}
-                </option>
-              ))}
-            </select>
-          </div>
+                <div className="max-w-sm">
 
-          {currentPrice ? (
-            <div className="mt-6 grid flex-1 gap-3 text-sm text-muted-foreground sm:mt-0 sm:justify-end sm:text-right">
-              <div className="font-medium text-foreground">
-                {t("updated")}: {" "}
-                <span className="font-semibold text-primary">
-                  {formatTime(currentPrice.timestamp * 1000)}
-                </span>
-              </div>
-              <div>
-                {t("perGram")}: {" "}
-                <span className="font-semibold text-foreground">
-                  {formatPriceCeil2(currentPrice.xauPrice / OZ_TO_GRAM)}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-6 text-sm text-muted-foreground sm:mt-0 sm:text-right">
-              {loading ? t("loadingPriceData") : "—"}
-            </div>
-          )}
-        </div>
+                  <label
+
+                    htmlFor="currency-select"
+
+                    className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+
+                  >
+
+                    {t("currency")}
+
+                  </label>
+
+                  <select
+
+                    id="currency-select"
+
+                    value={currency}
+
+                    onChange={(event) => handleCurrencyChange(event.target.value)}
+
+                    className="mt-2 h-11 w-full rounded-xl border border-border/60 bg-background/90 px-3 text-sm font-medium text-foreground shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/60"
+
+                  >
+
+                    {CURRENCIES.map((curr) => (
+
+                      <option key={curr.code} value={curr.code}>
+
+                        {curr.code} — {t(`currency${curr.code}`, { defaultValue: curr.name })}
+
+                      </option>
+
+                    ))}
+
+                  </select>
+
+                </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="rounded-2xl border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur-sm">
