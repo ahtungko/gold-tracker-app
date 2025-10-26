@@ -193,16 +193,18 @@ export default function Tracker() {
               <h2 className="mb-4 text-lg font-semibold text-foreground">
                 {t("yourPurchases")}
               </h2>
-              <PurchaseList
-                purchases={purchases}
-                onDelete={handleDeletePurchase}
-                onEdit={handleEditPurchase}
-                currency={currency}
-                currentPrices={{
-                  gold: goldPrice,
-                  silver: silverPrice,
-                }}
-              />
+              <div className="overflow-y-auto max-h-96">
+                <PurchaseList
+                  purchases={purchases}
+                  onDelete={handleDeletePurchase}
+                  onEdit={handleEditPurchase}
+                  currency={currency}
+                  currentPrices={{
+                    gold: goldPrice,
+                    silver: silverPrice,
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

@@ -229,7 +229,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
         </div>
 
         {/* Purchase Date */}
-        <div>
+        <div className="md:col-span-2">
           <label className="block text-sm font-medium mb-1">{t('purchaseDate')} *</label>
           <input
             type="date"
