@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Purchase, PurchaseSummary } from '@/lib/types';
 import { getPurchases, savePurchase, deletePurchase, getCurrency, saveCurrency, clearCurrency, updatePurchaseInStorage } from '@/lib/storage';
 import { decimalSum, decimalMultiply, decimalDivide, decimalSubtract } from '@/lib/decimal';
-
-const GRAMS_PER_TROY_OUNCE = 31.1034768;
+import { GRAMS_PER_TROY_OUNCE } from '@shared/const';
 
 export function usePurchases() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);

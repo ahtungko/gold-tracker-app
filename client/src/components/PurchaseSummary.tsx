@@ -4,6 +4,7 @@ import { formatPriceCeil2 } from "@/lib/goldApi";
 import { exportToCSV, generateExportFilename } from "@/lib/storage";
 import { useTranslation } from 'react-i18next';
 import { decimalSum, decimalMultiply, decimalDivide, decimalSubtract, formatDecimal } from '@/lib/decimal';
+import { GRAMS_PER_TROY_OUNCE } from '@shared/const';
 
 interface PurchaseSummaryProps {
   purchases: Purchase[];
@@ -165,8 +166,8 @@ function calculateSummary(
   const totalWeight = decimalSum(purchases.map(p => p.weight)).toNumber();
   const totalCost = decimalSum(purchases.map(p => p.totalCost)).toNumber();
   
-  // Calculate estimated value: totalWeight * (currentPrice / 31.1034768)
-  const pricePerGram = decimalDivide(currentPrice, 31.1034768);
+  // Calculate estimated value: totalWeight * (currentPrice / GRAMS_PER_TROY_OUNCE)
+  const pricePerGram = decimalDivide(currentPrice, GRAMS_PER_TROY_OUNCE);
   const estimatedValue = decimalMultiply(totalWeight, pricePerGram).toNumber();
   
   // Calculate profit with precision

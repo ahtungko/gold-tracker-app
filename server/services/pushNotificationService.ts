@@ -10,6 +10,7 @@ import {
 } from "./push/schemas";
 import { SubscriptionStore, StoredSubscription } from "./push/subscriptionStore";
 import { fetchGoldPrice, type GoldPriceQuote } from "./goldPriceService";
+import { GRAMS_PER_TROY_OUNCE } from "@shared/const";
 
 export interface RegisterResult {
   subscription: StoredSubscription;
@@ -296,12 +297,12 @@ export class PushNotificationService {
 }
 
 export function formatGoldPriceNotification(quote: GoldPriceQuote): string {
-  const price = formatCurrency(quote.xauPrice, quote.currency);
-  const changeValue = formatChange(quote.chgXau);
+  const pricePerGram = toPricePerGram(quote.xauPrice);
+  const changePerGram = toPricePerGram(quote.chgXau);
   const changePercentage = formatPercentage(quote.pcXau);
-  const direction = quote.chgXau >= 0 ? "▲" : "▼";
+  const direction = changePerGram >= 0 ? "▲" : "▼";
 
-  const body = `${price} ${direction} ${changeValue} (${changePercentage})`;
+  const body = `${formatPricePerGram(pricePerGram, quote.currency)} ${direction} ${formatChange(changePerGram)} (${changePercentage})`;
 
   const payload = {
     title: `Gold price update (${quote.currency})`,
@@ -309,8 +310,8 @@ export function formatGoldPriceNotification(quote: GoldPriceQuote): string {
     tag: `gold-price-${quote.currency.toLowerCase()}`,
     data: {
       currency: quote.currency,
-      price: quote.xauPrice,
-      change: quote.chgXau,
+      price: pricePerGram,
+      change: changePerGram,
       changePercent: quote.pcXau,
       timestamp: quote.timestamp,
     },
@@ -319,11 +320,18 @@ export function formatGoldPriceNotification(quote: GoldPriceQuote): string {
   return JSON.stringify(payload);
 }
 
-function formatCurrency(amount: number, currency: string): string {
+function toPricePerGram(amount: number): number {
   if (!Number.isFinite(amount)) {
-    return `0.00 ${currency}`;
+    return 0;
   }
-  return `${amount.toFixed(2)} ${currency}`;
+  return amount / GRAMS_PER_TROY_OUNCE;
+}
+
+function formatPricePerGram(amountPerGram: number, currency: string): string {
+  if (!Number.isFinite(amountPerGram)) {
+    return `0.00 ${currency}/g`;
+  }
+  return `${amountPerGram.toFixed(2)} ${currency}/g`;
 }
 
 function formatChange(change: number): string {

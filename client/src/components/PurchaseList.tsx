@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { formatPriceCeil2 } from "@/lib/goldApi";
 import { useTranslation } from 'react-i18next';
 import { decimalMultiply, decimalDivide, decimalSubtract, formatDecimal } from '@/lib/decimal';
+import { GRAMS_PER_TROY_OUNCE } from '@shared/const';
 
 interface PurchaseListProps {
   purchases: Purchase[];
@@ -41,7 +42,7 @@ export default function PurchaseList({
             : currentPrices.silver;
         
         // Use precise decimal arithmetic for all calculations
-        const pricePerGram = decimalDivide(currentPrice, 31.1034768);
+        const pricePerGram = decimalDivide(currentPrice, GRAMS_PER_TROY_OUNCE);
         const estimatedValue = decimalMultiply(pricePerGram, purchase.weight).toNumber();
         const profit = decimalSubtract(estimatedValue, purchase.totalCost).toNumber();
         const profitPercent = decimalMultiply(decimalDivide(profit, purchase.totalCost), 100).toNumber();
