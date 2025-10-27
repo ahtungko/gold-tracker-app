@@ -63,6 +63,7 @@ const plugins = [
     },
     devOptions: {
       enabled: true,
+      type: "module",
     },
   }),
 ];
