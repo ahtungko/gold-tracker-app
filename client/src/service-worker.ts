@@ -17,6 +17,7 @@ import {
   parseNotificationPayload,
 } from "./lib/pwa/pushPayload";
 import type { NormalizedNotificationPayload } from "./lib/pwa/pushPayload";
+import { base64UrlToUint8Array, normalizePushSubscriptionJSON } from "./lib/pwa/pushSubscription";
 
 declare const self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: Array<import("workbox-precaching").PrecacheEntry>;
@@ -27,6 +28,7 @@ const STATIC_ASSETS_CACHE = "gold-tracker-static-v1";
 const STATIC_MEDIA_CACHE = "gold-tracker-media-v1";
 const PRICE_DATA_CACHE = "gold-tracker-prices-v1";
 const BROADCAST_CHANNEL_NAME = "gold-tracker-notifications";
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY ?? "";
 
 clientsClaim();
 self.skipWaiting();
@@ -172,6 +174,48 @@ function withDefaults(payload: NormalizedNotificationPayload, receivedAt: number
   };
 }
 
+async function callNotificationsProcedure(path: string, payload: unknown): Promise<void> {
+  try {
+    await fetch(`/api/trpc/${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ 0: { json: payload } }),
+      credentials: "include",
+    });
+  } catch (error) {
+    console.error(`[PWA] Failed to call ${path}`, error);
+  }
+}
+
+async function syncSubscription(subscription: PushSubscription): Promise<void> {
+  const normalized = normalizePushSubscriptionJSON(subscription.toJSON());
+
+  if (!normalized) {
+    console.warn("[PWA] Unable to serialise push subscription");
+    return;
+  }
+
+  await callNotificationsProcedure("notifications.subscribe", {
+    subscription: normalized,
+    metadata: {
+      source: "service-worker",
+      userAgent: self.navigator.userAgent,
+      language: self.navigator.language,
+      platform: self.navigator.platform,
+    },
+  });
+}
+
+async function removeSubscription(endpoint: string | null | undefined): Promise<void> {
+  if (!endpoint) {
+    return;
+  }
+
+  await callNotificationsProcedure("notifications.unsubscribe", { endpoint });
+}
+
 self.addEventListener("push", (event) => {
   const receivedAt = Date.now();
 
@@ -188,6 +232,42 @@ self.addEventListener("push", (event) => {
         data: parsed.options.data,
         receivedAt,
       });
+    })(),
+  );
+});
+
+self.addEventListener("pushsubscriptionchange", (event) => {
+  if (!VAPID_PUBLIC_KEY) {
+    console.warn("[PWA] pushsubscriptionchange triggered but no VAPID public key is configured");
+    return;
+  }
+
+  event.waitUntil(
+    (async () => {
+      try {
+        const applicationServerKey = base64UrlToUint8Array(VAPID_PUBLIC_KEY);
+
+        if (!applicationServerKey.length) {
+          console.warn("[PWA] pushsubscriptionchange aborted due to invalid VAPID public key");
+          return;
+        }
+
+        const subscription =
+          event.newSubscription ??
+          (await self.registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey,
+          }));
+
+        await syncSubscription(subscription);
+
+        const oldEndpoint = event.oldSubscription?.endpoint;
+        if (oldEndpoint && oldEndpoint !== subscription.endpoint) {
+          await removeSubscription(oldEndpoint);
+        }
+      } catch (error) {
+        console.error("[PWA] Failed to resubscribe after pushsubscriptionchange", error);
+      }
     })(),
   );
 });

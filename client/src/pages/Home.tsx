@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageContainer, SectionHeader } from "@/components/layout";
+import { PushSubscriptionToggle } from "@/components/PushSubscriptionToggle";
 import { useGoldPrice } from "@/hooks/useGoldPrice";
 import { formatPercentage, formatPriceCeil2 } from "@/lib/goldApi";
 import { formatTime } from "@/lib/i18n-utils";
@@ -44,6 +45,7 @@ export default function Home() {
           description={t("marketOverviewLead")}
           actions={
             <div className="flex flex-wrap items-center gap-2">
+              <PushSubscriptionToggle />
               <div className="flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-2 py-1 shadow-sm">
                 {/* <span className="hidden text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:inline">
                   {t("unit")}

@@ -19,6 +19,30 @@
     "closePrice": "收盘价",
     "updated": "更新于",
     "loadingPriceData": "正在加载价格数据...",
+    "push": {
+      "enableLabel": "启用价格提醒",
+      "disableLabel": "关闭价格提醒",
+      "loading": "正在检查通知状态…",
+      "unsupported": "当前环境不支持通知。",
+      "unsupportedReason": {
+        "noNotification": "此浏览器不支持通知。",
+        "noServiceWorker": "推送通知需要浏览器支持 Service Worker。",
+        "noPushManager": "此浏览器不支持推送管理器。",
+        "notStandalone": "请将应用安装到设备上以启用通知。",
+        "missingConfig": "推送通知尚未配置。",
+        "permissionDenied": "通知已被阻止，请在浏览器设置中启用。"
+      },
+      "tooltip": {
+        "enabled": "关闭价格提醒",
+        "disabled": "启用价格提醒"
+      },
+      "toast": {
+        "enabled": "已启用价格提醒",
+        "disabled": "已关闭价格提醒",
+        "permissionDenied": "请在浏览器设置中允许通知。",
+        "error": "无法更新通知设置，请重试。"
+      }
+    },
     "silverPriceXAG": "白银价格 (XAG)",
     "price": {
       "unitLabel": "g/oz",

@@ -19,6 +19,30 @@
     "closePrice": "Close Price",
     "updated": "Updated",
     "loadingPriceData": "Loading price data...",
+    "push": {
+      "enableLabel": "Enable price alerts",
+      "disableLabel": "Disable price alerts",
+      "loading": "Checking notification status…",
+      "unsupported": "Notifications not supported.",
+      "unsupportedReason": {
+        "noNotification": "This browser does not support notifications.",
+        "noServiceWorker": "Service workers are required for push notifications.",
+        "noPushManager": "Push manager is not available in this browser.",
+        "notStandalone": "Install the app on your device to enable notifications.",
+        "missingConfig": "Push notifications are not configured yet.",
+        "permissionDenied": "Notifications are blocked. Enable them in your browser settings."
+      },
+      "tooltip": {
+        "enabled": "Disable price alerts",
+        "disabled": "Enable price alerts"
+      },
+      "toast": {
+        "enabled": "Price alerts enabled",
+        "disabled": "Price alerts disabled",
+        "permissionDenied": "Please enable notifications in your browser settings.",
+        "error": "Unable to update notifications. Please try again."
+      }
+    },
     "silverPriceXAG": "Silver Price (XAG)",
     "price": {
       "unitLabel": "g/oz",
