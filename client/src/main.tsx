@@ -4,12 +4,40 @@ import { httpBatchLink } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import React from "react";
-import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import "./i18n";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n";
+import { registerSW } from "virtual:pwa-register";
+
+declare global {
+  interface Window {
+    __PWA_SW_REGISTERED__?: boolean;
+  }
+}
+
+if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+  const globalWindow = window as Window & { __PWA_SW_REGISTERED__?: boolean };
+
+  if (!globalWindow.__PWA_SW_REGISTERED__) {
+    globalWindow.__PWA_SW_REGISTERED__ = true;
+
+    const updateServiceWorker = registerSW({
+      immediate: true,
+      onNeedRefresh() {
+        updateServiceWorker(true);
+      },
+      onOfflineReady() {
+        console.info("[PWA] Offline cache ready");
+      },
+      onRegisterError(error) {
+        globalWindow.__PWA_SW_REGISTERED__ = false;
+        console.error("[PWA] Service worker registration failed", error);
+      },
+    });
+  }
+}
 
 const queryClient = new QueryClient();
 

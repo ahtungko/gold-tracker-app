@@ -164,6 +164,27 @@ Environment variables are read from the project root `.env` file. Vite-specific 
   ```
   Vitest is already configured via `vitest.config.ts` for JSX testing with JSDOM.
 
+### PWA manual verification
+The customised service worker handles offline caching and push notifications. Validate the flow end-to-end before releasing:
+
+1. Run `pnpm dev` and open the app in Chrome (or another browser with service worker support).
+2. Approve the notification permission prompt. If no prompt appears, enable notifications via the site information menu and refresh.
+3. In DevTools, open the **Application → Service Workers** panel, tick **Update on reload**, and use the **Push** button with a JSON payload such as:
+   ```json
+   {
+     "title": "Spot price alert",
+     "body": "Gold moved 1.2% in the last hour",
+     "url": "/tracker"
+   }
+   ```
+   Confirm that a rich notification appears with the manifest icons and that the console logs a `NOTIFICATION_RECEIVED` broadcast when you subscribe to the `gold-tracker-notifications` channel:
+   ```js
+   const channel = new BroadcastChannel("gold-tracker-notifications");
+   channel.onmessage = console.log;
+   ```
+4. Close the browser tab (keep the service worker alive) and trigger another simulated push from DevTools. The notification should surface even while the UI is closed. Clicking it must focus an existing tab or open a new one at the provided URL.
+5. Toggle **Offline** in the DevTools networking panel and reload the page. The precached shell and previously fetched price data should continue to load without network access.
+
 ## Build & deployment
 1. Build the project:
    ```bash
