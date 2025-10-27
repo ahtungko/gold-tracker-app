@@ -2,8 +2,8 @@ export const DEFAULT_NOTIFICATION_TITLE = "Gold Tracker";
 export const DEFAULT_NOTIFICATION_BODY = "Tap to view the latest precious metal prices.";
 export const DEFAULT_NOTIFICATION_URL = "/";
 export const DEFAULT_NOTIFICATION_TAG = "gold-tracker-price-update";
-export const DEFAULT_NOTIFICATION_ICON = "/pwa-192x192.svg";
-export const DEFAULT_NOTIFICATION_BADGE = "/pwa-192x192.svg";
+export const DEFAULT_NOTIFICATION_ICON = "/notification-icon-192.png";
+export const DEFAULT_NOTIFICATION_BADGE = "/notification-badge-256.png";
 
 interface RawNotificationPayload {
   title?: unknown;

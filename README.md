@@ -12,6 +12,10 @@ Gold Tracker is a full-stack TypeScript application for monitoring live gold and
   - [Installation](#installation)
   - [Available scripts](#available-scripts)
 - [Environment variables](#environment-variables)
+- [Push notifications](#push-notifications)
+  - [Setup](#setup)
+  - [iOS 18 installation](#ios-18-installation)
+  - [Manual QA](#manual-qa)
 - [Usage](#usage)
   - [Prices dashboard](#prices-dashboard)
   - [Purchase tracker](#purchase-tracker)
@@ -116,11 +120,37 @@ Gold Tracker is a full-stack TypeScript application for monitoring live gold and
 ## Environment variables
 Environment variables are read from the project root `.env` file. Vite-specific values must be prefixed with `VITE_` to be exposed to the client.
 
-| Variable        | Scope        | Description                                                 | Default |
-|-----------------|--------------|-------------------------------------------------------------|---------|
-| `VITE_APP_TITLE`| Client       | Application title used in the UI.                          | `App` |
-| `VITE_APP_LOGO` | Client       | Logo URL displayed in supported components.                | Placeholder SVG |
-| `PORT`          | Server       | Preferred port for the Express server. Falls back if busy. | `3000` |
+| Variable                  | Scope  | Description                                                                      | Default |
+|---------------------------|--------|----------------------------------------------------------------------------------|---------|
+| `VITE_APP_TITLE`          | Client | Application title used in the UI.                                               | `App` |
+| `VITE_APP_LOGO`           | Client | Logo URL displayed in supported components.                                     | Placeholder SVG |
+| `VITE_WEB_PUSH_PUBLIC_KEY`| Client | Base64-url encoded VAPID public key used when creating push subscriptions.      | _(empty)_ |
+| `PORT`                    | Server | Preferred port for the Express server. Falls back if busy.                      | `3000` |
+| `WEB_PUSH_PUBLIC_KEY`     | Server | Same VAPID public key shared with the push service.                              | _(empty)_ |
+| `WEB_PUSH_PRIVATE_KEY`    | Server | VAPID private key used to sign outbound notifications.                           | _(empty)_ |
+| `WEB_PUSH_CONTACT`        | Server | Contact URI (mailto or URL) advertised in VAPID headers.                        | `mailto:support@example.com` |
+
+## Push notifications
+See [docs/pwa-notifications.md](docs/pwa-notifications.md) for a detailed walkthrough of the end-to-end workflow.
+
+### Setup
+1. Generate a VAPID keypair with `pnpm dlx web-push generate-vapid-keys`.
+2. Copy the keys into your `.env` file (`VITE_WEB_PUSH_PUBLIC_KEY`, `WEB_PUSH_PUBLIC_KEY`, `WEB_PUSH_PRIVATE_KEY`) and provide a contact email via `WEB_PUSH_CONTACT`.
+3. Restart the development server so the client receives the refreshed public key and confirm the service worker precaches the notification icon and badge assets.
+
+### iOS 18 installation
+- Open Gold Tracker in Safari and tap **Share → Add to Home Screen**.
+- Confirm the app name/icon, then launch the PWA from the Home Screen shortcut (not from a Safari tab).
+- Accept the push permission prompt when it appears. If you dismiss it, re-enable notifications under **Settings → Notifications → Gold Tracker** before testing.
+- Leave the app open for a few seconds the first time so the service worker activates, then return to the Home Screen to verify background delivery.
+
+### Manual QA
+- Simulate minute-by-minute pushes and verify that notifications reuse the same tag instead of stacking duplicates.
+- When the app is in the foreground, confirm the `gold-tracker-notifications` broadcast channel emits `NOTIFICATION_RECEIVED` events with payload metadata.
+- Tapping a notification should focus any existing window or open a new one at the payload URL.
+- After calling `registration.pushManager.getSubscription()` and unsubscribing, the next delivery attempt should fail so the UI can prompt the user to resubscribe.
+- If notification permissions are denied, surface guidance in the UI and avoid re-requesting permission until the user changes it in system settings.
+- Dismissing notifications should clear the app badge the next time the PWA is opened.
 
 ## Usage
 ### Prices dashboard
@@ -165,25 +195,28 @@ Environment variables are read from the project root `.env` file. Vite-specific 
   Vitest is already configured via `vitest.config.ts` for JSX testing with JSDOM.
 
 ### PWA manual verification
-The customised service worker handles offline caching and push notifications. Validate the flow end-to-end before releasing:
+The customised service worker handles offline caching and push notifications. Before releasing, run through the following checklist (and consult [docs/pwa-notifications.md](docs/pwa-notifications.md) for command snippets):
 
-1. Run `pnpm dev` and open the app in Chrome (or another browser with service worker support).
-2. Approve the notification permission prompt. If no prompt appears, enable notifications via the site information menu and refresh.
-3. In DevTools, open the **Application → Service Workers** panel, tick **Update on reload**, and use the **Push** button with a JSON payload such as:
+1. Run `pnpm dev` and open the app in Chrome (or another browser with service worker support). Approve the notification prompt; if it was previously denied, re-enable it via the site information menu and reload.
+2. In **Application → Service Workers**, tick **Update on reload** and trigger **Push** with a payload similar to:
    ```json
    {
      "title": "Spot price alert",
      "body": "Gold moved 1.2% in the last hour",
-     "url": "/tracker"
+     "url": "/tracker",
+     "tag": "gold-tracker-price-update"
    }
    ```
-   Confirm that a rich notification appears with the manifest icons and that the console logs a `NOTIFICATION_RECEIVED` broadcast when you subscribe to the `gold-tracker-notifications` channel:
+   Confirm the notification uses the updated icon/badge and that the `gold-tracker-notifications` broadcast channel emits a `NOTIFICATION_RECEIVED` message. Fire a second push with the same tag after ~60 seconds to ensure it replaces the previous alert instead of stacking duplicates.
+3. In the console, run:
    ```js
-   const channel = new BroadcastChannel("gold-tracker-notifications");
-   channel.onmessage = console.log;
+   const registration = await navigator.serviceWorker.ready;
+   const subscription = await registration.pushManager.getSubscription();
+   await subscription?.unsubscribe();
    ```
-4. Close the browser tab (keep the service worker alive) and trigger another simulated push from DevTools. The notification should surface even while the UI is closed. Clicking it must focus an existing tab or open a new one at the provided URL.
-5. Toggle **Offline** in the DevTools networking panel and reload the page. The precached shell and previously fetched price data should continue to load without network access.
+   Attempt another push and verify the delivery service reports a `410 Gone` (or similar) so the UI can prompt the user to resubscribe, then subscribe again and confirm delivery recovers.
+4. Install the PWA on iOS 18 (Safari → Share → Add to Home Screen). Launch it from the Home Screen, grant notification permission, and send a test push. The native banner should display the manifest name/icon. Deny permissions afterwards to confirm the app surfaces guidance without reprompt loops.
+5. Close the browser tab while leaving the service worker active and send another push to confirm background delivery. Finally, toggle **Offline** in DevTools and reload to ensure the precached shell and cached price data still render.
 
 ## Build & deployment
 1. Build the project:
