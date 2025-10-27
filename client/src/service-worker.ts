@@ -23,34 +23,115 @@ declare const self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: Array<import("workbox-precaching").PrecacheEntry>;
 };
 
+type PrecacheManifestEntry = string | import("workbox-precaching").PrecacheEntry;
+
+function toPathname(url: string): string {
+  return new URL(url, self.location.origin).pathname;
+}
+
+function getManifestEntryPath(entry: PrecacheManifestEntry): string {
+  if (typeof entry === "string") {
+    return toPathname(entry);
+  }
+
+  return toPathname(entry.url);
+}
+
+function ensureAppShellEntry(entries: ReadonlyArray<PrecacheManifestEntry>, appShellPathname: string): PrecacheManifestEntry[] {
+  const manifest = Array.from(entries);
+  const hasAppShell = manifest.some((entry) => getManifestEntryPath(entry) === appShellPathname);
+
+  if (!hasAppShell) {
+    manifest.push({
+      url: appShellPathname,
+      revision: `${Date.now()}`,
+    });
+  }
+
+  return manifest;
+}
+
 const APP_SHELL_URL = "/index.html";
+const APP_SHELL_PATHNAME = toPathname(APP_SHELL_URL);
+const APP_SHELL_CACHE_KEYS = Array.from(
+  new Set(
+    [
+      APP_SHELL_PATHNAME,
+      APP_SHELL_URL,
+      APP_SHELL_PATHNAME.startsWith("/") ? APP_SHELL_PATHNAME.slice(1) : APP_SHELL_PATHNAME,
+    ].filter(Boolean),
+  ),
+);
 const STATIC_ASSETS_CACHE = "gold-tracker-static-v1";
 const STATIC_MEDIA_CACHE = "gold-tracker-media-v1";
 const PRICE_DATA_CACHE = "gold-tracker-prices-v1";
 const BROADCAST_CHANNEL_NAME = "gold-tracker-notifications";
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY ?? "";
 
+async function getCachedAppShell(): Promise<Response | undefined> {
+  for (const key of APP_SHELL_CACHE_KEYS) {
+    const match = await matchPrecache(key);
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+async function respondWithAppShell(event: FetchEvent, originalError?: unknown): Promise<Response> {
+  const cached = await getCachedAppShell();
+  if (cached) {
+    return cached;
+  }
+
+  const preloadResponse = await event.preloadResponse;
+  if (preloadResponse) {
+    return preloadResponse;
+  }
+
+  try {
+    return await fetch(APP_SHELL_PATHNAME, { cache: "reload" });
+  } catch (fetchError) {
+    if (originalError) {
+      throw originalError;
+    }
+
+    throw fetchError;
+  }
+}
+
 clientsClaim();
 self.skipWaiting();
 
-precacheAndRoute(self.__WB_MANIFEST);
+const precacheManifest = ensureAppShellEntry(self.__WB_MANIFEST, APP_SHELL_PATHNAME);
+
+precacheAndRoute(precacheManifest);
 cleanupOutdatedCaches();
 
-const navigationHandler = createHandlerBoundToURL(APP_SHELL_URL);
+let navigationHandler: ReturnType<typeof createHandlerBoundToURL> | null = null;
+
+try {
+  navigationHandler = createHandlerBoundToURL(APP_SHELL_PATHNAME);
+} catch (error) {
+  console.warn(
+    "[PWA] Falling back to network navigation handling because the app shell is missing from the precache manifest.",
+    error,
+  );
+}
 
 registerRoute(
   ({ request }) => request.mode === "navigate",
   async ({ event }) => {
-    try {
-      return await navigationHandler({ event });
-    } catch (error) {
-      const cached = await matchPrecache(APP_SHELL_URL);
-      if (cached) {
-        return cached;
+    if (navigationHandler) {
+      try {
+        return await navigationHandler({ event });
+      } catch (error) {
+        return respondWithAppShell(event, error);
       }
-
-      throw error;
     }
+
+    return respondWithAppShell(event);
   },
 );
 
