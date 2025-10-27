@@ -53,4 +53,9 @@ describe("push subscription schemas", () => {
 
     expect(getPreferredCurrency(metadata)).toBe("GBP");
   });
+
+  it("uses default when only storing default currency", () => {
+    const metadata = normalizeMetadata({ preferredCurrency: DEFAULT_PREFERRED_CURRENCY.toLowerCase() });
+    expect(getPreferredCurrency(metadata)).toBe(DEFAULT_PREFERRED_CURRENCY);
+  });
 });

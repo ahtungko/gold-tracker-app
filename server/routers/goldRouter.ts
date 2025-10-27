@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_CURRENCY } from "@shared/const";
 import { publicProcedure, router } from "../_core/trpc";
 import { fetchGoldPrice, fetchHistoricalData } from "../services/goldPriceService";
 
@@ -7,7 +8,7 @@ export const goldRouter = router({
    * Get current gold price in a specific currency
    */
   getCurrentPrice: publicProcedure
-    .input(z.object({ currency: z.string().default("USD") }))
+    .input(z.object({ currency: z.string().default(DEFAULT_CURRENCY) }))
     .query(async ({ input }) => {
       return await fetchGoldPrice(input.currency);
     }),
@@ -19,7 +20,7 @@ export const goldRouter = router({
   getHistoricalData: publicProcedure
     .input(
       z.object({
-        currency: z.string().default("USD"),
+        currency: z.string().default(DEFAULT_CURRENCY),
         days: z.number().default(30),
       }),
     )

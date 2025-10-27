@@ -9,15 +9,15 @@ import { CURRENCIES } from "@/lib/currencies";
 import { PageTransition } from "@/lib/animations";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import { DEFAULT_WEIGHT_UNIT, GRAMS_PER_TROY_OUNCE } from "@shared/const";
 
 type Unit = "oz" | "gram";
 
-const OZ_TO_GRAM = 31.1035;
 
 export default function Home() {
   const { t } = useTranslation();
   const { currentPrice, loading, currency, setCurrency } = useGoldPrice();
-  const [unit, setUnit] = useState<Unit>("gram");
+  const [unit, setUnit] = useState<Unit>(DEFAULT_WEIGHT_UNIT);
   const unitLabel = t(
     unit === "gram" ? "price.unitLabelGram" : "price.unitLabelOunce",
     { defaultValue: unit === "gram" ? "g" : "oz" },
@@ -32,7 +32,7 @@ export default function Home() {
   };
 
   const getDisplayPrice = (price: number) =>
-    unit === "gram" ? price / OZ_TO_GRAM : price;
+    unit === "gram" ? price / GRAMS_PER_TROY_OUNCE : price;
 
   const changeColor = (value: number) =>
     value >= 0 ? "text-emerald-400" : "text-rose-400";

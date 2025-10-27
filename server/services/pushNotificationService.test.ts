@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { formatGoldPriceNotification } from "./pushNotificationService";
 import type { GoldPriceQuote } from "./goldPriceService";
+import { GRAMS_PER_TROY_OUNCE } from "@shared/const";
 
 describe("formatGoldPriceNotification", () => {
   const baseQuote: GoldPriceQuote = {
     timestamp: 1_700_000_000,
     metal: "XAU",
-    currency: "USD",
+    currency: "MYR",
     xauPrice: 2345.67,
     xagPrice: 0,
     chgXau: 12.34,
@@ -21,17 +22,19 @@ describe("formatGoldPriceNotification", () => {
     const payload = formatGoldPriceNotification(baseQuote);
     const parsed = JSON.parse(payload);
 
-    expect(parsed.title).toContain("USD");
-    expect(parsed.body).toContain("2345.67 USD");
-    expect(parsed.body).toContain("+12.34");
+    const pricePerGram = baseQuote.xauPrice / GRAMS_PER_TROY_OUNCE;
+    const changePerGram = baseQuote.chgXau / GRAMS_PER_TROY_OUNCE;
+    const formattedChange = `${changePerGram >= 0 ? "+" : "-"}${Math.abs(changePerGram).toFixed(2)}`;
+
+    expect(parsed.title).toContain("MYR");
+    expect(parsed.body).toContain(`${pricePerGram.toFixed(2)} MYR/g`);
+    expect(parsed.body).toContain(formattedChange);
     expect(parsed.body).toContain("+0.56%");
-    expect(parsed.data).toMatchObject({
-      currency: "USD",
-      price: 2345.67,
-      change: 12.34,
-      changePercent: 0.56,
-      timestamp: 1_700_000_000,
-    });
+    expect(parsed.data.currency).toBe("MYR");
+    expect(parsed.data.price).toBeCloseTo(pricePerGram);
+    expect(parsed.data.change).toBeCloseTo(changePerGram);
+    expect(parsed.data.changePercent).toBe(0.56);
+    expect(parsed.data.timestamp).toBe(1_700_000_000);
   });
 
   it("indicates downward movement with arrow and sign", () => {
@@ -43,9 +46,10 @@ describe("formatGoldPriceNotification", () => {
 
     const payload = formatGoldPriceNotification(negativeQuote);
     const parsed = JSON.parse(payload);
+    const changePerGram = negativeQuote.chgXau / GRAMS_PER_TROY_OUNCE;
 
     expect(parsed.body).toContain("▼");
-    expect(parsed.body).toContain("-5.43");
+    expect(parsed.body).toContain(changePerGram.toFixed(2));
     expect(parsed.body).toContain("-1.23%");
   });
 });

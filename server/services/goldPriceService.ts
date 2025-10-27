@@ -1,3 +1,5 @@
+import { DEFAULT_CURRENCY } from "@shared/const";
+
 const GOLD_API_BASE = "https://data-asg.goldprice.org/dbXRates";
 
 export interface GoldPriceQuote {
@@ -22,7 +24,7 @@ export interface HistoricalGoldPricePoint {
 /**
  * Fetch gold price from the goldprice.org API.
  */
-export async function fetchGoldPrice(currency: string = "USD"): Promise<GoldPriceQuote> {
+export async function fetchGoldPrice(currency: string = DEFAULT_CURRENCY): Promise<GoldPriceQuote> {
   const upperCurrency = currency.toUpperCase();
   const url = `${GOLD_API_BASE}/${upperCurrency}`;
 
@@ -109,7 +111,7 @@ export function parseGoldPriceResponse(data: unknown, currency: string): GoldPri
  * to indicate no data is available from the upstream service.
  */
 export async function fetchHistoricalData(
-  currency: string = "USD",
+  currency: string = DEFAULT_CURRENCY,
   days: number = 30,
 ): Promise<HistoricalGoldPricePoint[]> {
   console.warn(`Historical data for ${days} days is not available from goldprice.org API`);

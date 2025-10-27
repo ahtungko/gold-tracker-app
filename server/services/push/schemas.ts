@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_CURRENCY } from "@shared/const";
 
 export const pushSubscriptionSchema = z
   .object({
@@ -42,7 +43,7 @@ export interface NormalizedSubscriptionMetadata extends SubscriptionMetadataPayl
   preferredCurrency?: string;
 }
 
-export const DEFAULT_PREFERRED_CURRENCY = "USD" as const;
+export const DEFAULT_PREFERRED_CURRENCY = DEFAULT_CURRENCY;
 
 export function normalizeSubscription(input: PushSubscriptionPayload): NormalizedPushSubscription {
   const normalizedKeys: NormalizedPushSubscription["keys"] = {};
