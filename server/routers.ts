@@ -1,10 +1,12 @@
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { goldRouter } from "./routers/goldRouter";
+import { notificationsRouter } from "./routers/notificationsRouter";
 
 export const appRouter = router({
   system: systemRouter,
   gold: goldRouter,
+  notifications: notificationsRouter,
 
   // auth: router({
   //   me: publicProcedure.query(opts => opts.ctx.user),
