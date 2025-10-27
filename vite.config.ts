@@ -59,7 +59,7 @@ const plugins = [
       ],
     },
     injectManifest: {
-      globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2}"]
+      globPatterns: ["index.html", "**/*.{js,css,ico,png,svg,webp,woff2,webmanifest}"],
     },
     devOptions: {
       enabled: true,
