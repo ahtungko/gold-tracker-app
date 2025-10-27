@@ -4,6 +4,7 @@ import { Purchase, Purity } from '@/lib/types';
 import { CURRENCIES } from '@/lib/currencies';
 import { useTranslation } from 'react-i18next';
 import { validateDecimalInput, decimalMultiply, formatDecimal } from '@/lib/decimal';
+import { DEFAULT_CURRENCY } from '@shared/const';
 
 interface PurchaseFormProps {
   onSubmit: (purchase: Omit<Purchase, 'createdAt'>) => void;
@@ -37,7 +38,7 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
   const [formData, setFormData] = useState({
     itemType: initialPurchase?.itemType || 'gold_bar',
     itemName: initialPurchase?.itemName || '',
-    currency: initialPurchase?.currency || currency || 'MYR',
+    currency: initialPurchase?.currency || currency || DEFAULT_CURRENCY,
     pricePerGram: initialPurchase?.pricePerGram.toString() || '',
     weight: initialPurchase?.weight.toString() || '',
     purity: initialPurchase?.purity || ('999' as Purity),
@@ -117,10 +118,10 @@ export default function PurchaseForm({ onSubmit, isLoading = false, currency, in
       setFormData({
         itemType: 'gold_bar',
         itemName: '',
-        currency: currency || 'MYR',
+        currency: currency || DEFAULT_CURRENCY,
         pricePerGram: '',
         weight: '',
-        purity: '999',
+
         purchaseDate: new Date().toISOString().split('T')[0],
       });
       setErrors({});
