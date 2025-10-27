@@ -64,6 +64,89 @@ function mapPermissionState(state: PermissionState | NotificationPermission): No
   return state as NotificationPermission;
 }
 
+const SERVICE_WORKER_READY_TIMEOUT_MS = 2500;
+
+function logPushDebug(message: string, context?: Record<string, unknown>) {
+  if (typeof console === "undefined") {
+    return;
+  }
+
+  const logger = typeof console.debug === "function" ? console.debug : console.log;
+
+  if (context) {
+    logger.call(console, `[Push] ${message}`, context);
+  } else {
+    logger.call(console, `[Push] ${message}`);
+  }
+}
+
+async function waitForServiceWorkerRegistration(
+  timeoutMs = SERVICE_WORKER_READY_TIMEOUT_MS,
+): Promise<ServiceWorkerRegistration> {
+  if (typeof navigator === "undefined" || !navigator.serviceWorker) {
+    throw createPushError("service-worker-unavailable", "Service worker API is not available");
+  }
+
+  logPushDebug("Waiting for service worker ready", { timeoutMs });
+
+  let cancelTimeout = () => {};
+
+  const timeoutPromise = new Promise<ServiceWorkerRegistration>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      logPushDebug("Service worker ready timed out, attempting fallback lookup", { timeoutMs });
+
+      void navigator.serviceWorker
+        .getRegistration()
+        .then((registration) => {
+          if (registration) {
+            logPushDebug("Resolved service worker registration via fallback", {
+              scope: registration.scope,
+              hasActiveWorker: Boolean(registration.active),
+            });
+            resolve(registration);
+            return;
+          }
+
+          logPushDebug("No service worker registration found during fallback lookup");
+          reject(createPushError("service-worker-unavailable", "No service worker registration found"));
+        })
+        .catch((error) => {
+          logPushDebug("Failed to retrieve service worker registration during fallback", {
+            name: error instanceof Error ? error.name : undefined,
+            message: error instanceof Error ? error.message : String(error),
+          });
+          const fallbackError =
+            error && typeof (error as PushNotificationError).code === "string"
+              ? (error as PushNotificationError)
+              : createPushError(
+                  "service-worker-unavailable",
+                  "Failed to retrieve service worker registration",
+                );
+          reject(fallbackError);
+        });
+    }, timeoutMs);
+
+    cancelTimeout = () => window.clearTimeout(timeoutId);
+  });
+
+  try {
+    const registration = await Promise.race([
+      navigator.serviceWorker.ready.then((readyRegistration) => {
+        logPushDebug("Service worker ready resolved", {
+          scope: readyRegistration.scope,
+          hasActiveWorker: Boolean(readyRegistration.active),
+        });
+        return readyRegistration;
+      }),
+      timeoutPromise,
+    ]);
+
+    return registration;
+  } finally {
+    cancelTimeout();
+  }
+}
+
 export function usePushNotifications(): UsePushNotificationsResult {
   const [{ supported, reason }, setSupport] = useState<PushSupportDetails>({
     supported: false,
@@ -151,27 +234,55 @@ export function usePushNotifications(): UsePushNotificationsResult {
       return;
     }
 
+    logPushDebug("Refresh invoked", {
+      supported,
+      hasPublicKey,
+    });
+
     if (!supported || !hasPublicKey) {
+      logPushDebug("Skipping refresh because push is unsupported or misconfigured", {
+        supported,
+        hasPublicKey,
+      });
       setIsInitializing(false);
       return;
     }
 
     if (typeof Notification !== "undefined") {
-      setPermission(Notification.permission);
+      const currentPermission = Notification.permission;
+      logPushDebug("Current notification permission during refresh", {
+        permission: currentPermission,
+      });
+      setPermission(currentPermission);
     }
 
     setIsInitializing(true);
 
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await waitForServiceWorkerRegistration();
+      logPushDebug("Service worker registration ready during refresh", {
+        scope: registration.scope,
+        hasActiveWorker: Boolean(registration.active),
+      });
+
       const existing = await registration.pushManager.getSubscription();
+      logPushDebug("Fetched subscription from push manager", {
+        hasSubscription: Boolean(existing),
+      });
+
       const normalized = serializePushSubscription(existing);
 
       if (normalized) {
+        logPushDebug("Existing push subscription detected", {
+          endpointSuffix: normalized.endpoint.slice(-6),
+        });
         subscriptionRef.current = normalized;
         setIsSubscribed(true);
 
         if (lastEndpointRef.current !== normalized.endpoint) {
+          logPushDebug("Synchronising push subscription with backend", {
+            endpointSuffix: normalized.endpoint.slice(-6),
+          });
           await subscribeMutation.mutateAsync({
             subscription: normalized,
             metadata: {
@@ -183,11 +294,17 @@ export function usePushNotifications(): UsePushNotificationsResult {
           lastEndpointRef.current = normalized.endpoint;
         }
       } else {
+        logPushDebug("No push subscription found during refresh");
         subscriptionRef.current = null;
         lastEndpointRef.current = null;
         setIsSubscribed(false);
       }
     } catch (error) {
+      console.error("[Push] Failed to refresh push subscription", error);
+      subscriptionRef.current = null;
+      lastEndpointRef.current = null;
+      setIsSubscribed(false);
+
       const pushError =
         error && typeof (error as PushNotificationError).code === "string"
           ? (error as PushNotificationError)
@@ -240,7 +357,12 @@ export function usePushNotifications(): UsePushNotificationsResult {
         throw createPushError("unsupported");
       }
 
+      logPushDebug("Attempting to subscribe to push notifications");
+
       let currentPermission = Notification.permission;
+      logPushDebug("Notification permission before subscription", {
+        permission: currentPermission,
+      });
 
       if (currentPermission === "denied") {
         setPermission("denied");
@@ -248,7 +370,11 @@ export function usePushNotifications(): UsePushNotificationsResult {
       }
 
       if (currentPermission === "default") {
+        logPushDebug("Requesting notification permission from user");
         currentPermission = await Notification.requestPermission();
+        logPushDebug("Notification permission request resolved", {
+          permission: currentPermission,
+        });
         setPermission(currentPermission);
 
         if (currentPermission !== "granted") {
@@ -258,8 +384,16 @@ export function usePushNotifications(): UsePushNotificationsResult {
         }
       }
 
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await waitForServiceWorkerRegistration();
+      logPushDebug("Service worker registration ready for subscription", {
+        scope: registration.scope,
+        hasActiveWorker: Boolean(registration.active),
+      });
+
       let existing = await registration.pushManager.getSubscription();
+      logPushDebug("Existing subscription before subscribing", {
+        hasSubscription: Boolean(existing),
+      });
 
       if (!existing) {
         const applicationServerKey = base64UrlToUint8Array(publicKey);
@@ -268,6 +402,7 @@ export function usePushNotifications(): UsePushNotificationsResult {
           throw createPushError("invalid-public-key");
         }
 
+        logPushDebug("Creating new push subscription via push manager");
         existing = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey,
@@ -292,8 +427,14 @@ export function usePushNotifications(): UsePushNotificationsResult {
       subscriptionRef.current = normalized;
       lastEndpointRef.current = normalized.endpoint;
       setIsSubscribed(true);
+
+      logPushDebug("Successfully subscribed to push notifications", {
+        endpointSuffix: normalized.endpoint.slice(-6),
+      });
+
       return normalized;
     } catch (error) {
+      console.error("[Push] Failed to subscribe to notifications", error);
       const pushError =
         error && typeof (error as PushNotificationError).code === "string"
           ? (error as PushNotificationError)
@@ -321,22 +462,39 @@ export function usePushNotifications(): UsePushNotificationsResult {
     setLastError(null);
 
     try {
-      const registration = await navigator.serviceWorker.ready;
+      logPushDebug("Attempting to unsubscribe from push notifications");
+
+      const registration = await waitForServiceWorkerRegistration();
+      logPushDebug("Service worker registration ready for unsubscription", {
+        scope: registration.scope,
+        hasActiveWorker: Boolean(registration.active),
+      });
+
       const existing = await registration.pushManager.getSubscription();
       const endpoint = existing?.endpoint ?? lastEndpointRef.current;
 
+      logPushDebug("Existing subscription prior to unsubscription", {
+        hasSubscription: Boolean(existing),
+        hasKnownEndpoint: Boolean(endpoint),
+      });
+
       if (existing) {
         await existing.unsubscribe();
+        logPushDebug("Browser push subscription removed");
       }
 
       if (endpoint) {
         await unsubscribeMutation.mutateAsync({ endpoint });
+        logPushDebug("Backend notified about push unsubscription", {
+          endpointSuffix: endpoint.slice(-6),
+        });
       }
 
       subscriptionRef.current = null;
       lastEndpointRef.current = null;
       setIsSubscribed(false);
     } catch (error) {
+      console.error("[Push] Failed to unsubscribe from notifications", error);
       const pushError =
         error && typeof (error as PushNotificationError).code === "string"
           ? (error as PushNotificationError)
