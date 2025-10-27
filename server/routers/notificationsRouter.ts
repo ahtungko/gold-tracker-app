@@ -1,118 +1,91 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
+import {
+  getPreferredCurrency,
+  pushSubscriptionSchema,
+  subscriptionMetadataSchema,
+} from "../services/push/schemas";
+import {
+  SUBSCRIPTION_REFRESH_INTERVAL_MS,
+  pushNotificationService,
+  subscriptionStore,
+} from "../services/pushNotificationService";
 
-const pushSubscriptionSchema = z
-  .object({
-    endpoint: z.string().min(1),
-    expirationTime: z.number().nullable().optional(),
-    keys: z
-      .object({
-        p256dh: z.string().min(1).optional(),
-        auth: z.string().min(1).optional(),
-      })
-      .partial()
-      .optional(),
-  })
-  .strip();
+const subscribeInputSchema = z.object({
+  subscription: pushSubscriptionSchema,
+  metadata: subscriptionMetadataSchema.optional(),
+});
 
-const metadataSchema = z
-  .object({
-    userAgent: z.string().optional(),
-    language: z.string().optional(),
-    platform: z.string().optional(),
-    source: z.string().optional(),
-  })
-  .optional();
-
-type NormalizedSubscription = {
-  endpoint: string;
-  expirationTime: number | null;
-  keys: {
-    p256dh?: string;
-    auth?: string;
-  };
-};
-
-type StoredSubscription = NormalizedSubscription & {
-  metadata?: z.infer<typeof metadataSchema>;
-  createdAt: number;
-  updatedAt: number;
-};
-
-const subscriptionStore = new Map<string, StoredSubscription>();
-
-function normalizeSubscription(input: z.infer<typeof pushSubscriptionSchema>): NormalizedSubscription {
-  const keys = input.keys ?? {};
-  const normalizedKeys: NormalizedSubscription["keys"] = {};
-
-  if (typeof keys.p256dh === "string" && keys.p256dh) {
-    normalizedKeys.p256dh = keys.p256dh;
-  }
-
-  if (typeof keys.auth === "string" && keys.auth) {
-    normalizedKeys.auth = keys.auth;
-  }
-
-  return {
-    endpoint: input.endpoint,
-    expirationTime: typeof input.expirationTime === "number" ? input.expirationTime : null,
-    keys: normalizedKeys,
-  };
-}
+const unsubscribeInputSchema = z.object({
+  endpoint: z.string().trim().min(1),
+});
 
 export const notificationsRouter = router({
   getPublicKey: publicProcedure.query(() => {
-    const publicKey = process.env.WEB_PUSH_PUBLIC_KEY ?? process.env.VITE_VAPID_PUBLIC_KEY ?? "";
+    const publicKey = pushNotificationService.getPublicKey();
+    const enabled = pushNotificationService.isEnabled();
 
-    if (!publicKey) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Push notifications are not configured.",
-      });
+    return {
+      enabled,
+      publicKey,
+      refreshIntervalSeconds: Math.floor(SUBSCRIPTION_REFRESH_INTERVAL_MS / 1000),
+    } as const;
+  }),
+
+  status: publicProcedure.query(() => {
+    const subscriptions = subscriptionStore.list();
+    const currencies = new Set<string>();
+
+    for (const subscription of subscriptions) {
+      currencies.add(getPreferredCurrency(subscription.metadata));
     }
 
-    return { publicKey } as const;
+    return {
+      enabled: pushNotificationService.isEnabled(),
+      total: subscriptions.length,
+      currencies: Array.from(currencies),
+    } as const;
   }),
 
   subscribe: publicProcedure
-    .input(
-      z.object({
-        subscription: pushSubscriptionSchema,
-        metadata: metadataSchema,
-      }),
-    )
-    .mutation(({ input }) => {
-      const normalized = normalizeSubscription(input.subscription);
-      const now = Date.now();
-      const existing = subscriptionStore.get(normalized.endpoint);
+    .input(subscribeInputSchema)
+    .mutation(async ({ input }) => {
+      try {
+        const { subscription } = await pushNotificationService.register(input.subscription, input.metadata);
+        const nextRefreshAt = new Date(Date.now() + SUBSCRIPTION_REFRESH_INTERVAL_MS).toISOString();
 
-      subscriptionStore.set(normalized.endpoint, {
-        ...normalized,
-        metadata: input.metadata,
-        createdAt: existing?.createdAt ?? now,
-        updatedAt: now,
-      });
+        return {
+          success: true,
+          endpoint: subscription.endpoint,
+          preferredCurrency: getPreferredCurrency(subscription.metadata),
+          nextRefreshAt,
+        } as const;
+      } catch (error) {
+        if (error instanceof Error && /not configured/i.test(error.message)) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: error.message,
+            cause: error,
+          });
+        }
 
-      return {
-        success: true,
-        subscription: normalized,
-      } as const;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to register push subscription",
+          cause: error,
+        });
+      }
     }),
 
   unsubscribe: publicProcedure
-    .input(
-      z.object({
-        endpoint: z.string().min(1),
-      }),
-    )
-    .mutation(({ input }) => {
-      const existed = subscriptionStore.get(input.endpoint);
-      subscriptionStore.delete(input.endpoint);
+    .input(unsubscribeInputSchema)
+    .mutation(async ({ input }) => {
+      const removed = await pushNotificationService.unregister(input.endpoint);
 
       return {
         success: true,
-        removed: Boolean(existed),
+        removed,
       } as const;
     }),
 });
